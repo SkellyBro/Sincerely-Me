@@ -160,6 +160,12 @@
 			echo"<h2>$uName's Account</h2>";
 		
 		?>
+		
+		<h5>
+			  This is your account, you can change your personal information here. 
+			  All information is kept secure and its completely optional to provide any kind of information as well, 
+			  if you would prefer to maintain anonymity.
+		  </h5>
 
       </div>
 	  
@@ -170,13 +176,7 @@
       
 	  <!--Content Here :0-->
 	  <div class="container">
-		  <h5>
-			  This is your account, you can change your personal information here. 
-			  All information is kept secure and its completely optional to provide any kind of information as well, 
-			  if you would prefer to maintain anonymity.
-		  </h5>
-		  <br/>
-		  <br/>
+		  <h3>Your Information: </h3>
 		  <?php
 		  
 			
@@ -226,7 +226,7 @@
 								echo"</div>";
 							echo"</div>";
 					}else{
-						echo"Database error encountered. Please contact an administrator for assistance.";
+						echo"<h6 class='error'>Database error encountered. Please contact an administrator for assistance.</h6>";
 					}
 				 /* close statement */
 				mysqli_stmt_close($stmt);
@@ -235,14 +235,89 @@
 			mysqli_close($mysqli);
 		  ?>
 		  <br/>
-		  <div class="col-sm-10">
+		  <div class="col-sm-12">
 			<?php echo"<a href='editDescription.php?description=$description&email=$email'>
 			<button class='btn btn-outline-primary form-control sincerely'>Edit Account Details</button></a>"; ?>
 			<br/>
 		</div>
+		
+		<hr/>
+		<div>
+		
+			<h4>Your Blogposts:</h4>
+			<br/>
+			<h5>These are all the blogposts you have made, you can see the verification status of your blogposts here!</h5>
+			
+			<?php
+				//initalize all variables
+				$content="";
+				$heading="";
+				$postDate="";
+				$status="";
+				
+				include('dbConnect.php');
+				
+				//this query is to get all of the user's posts and display them.
+				if($stmt=mysqli_prepare($mysqli, 
+				"SELECT tblblogpost.content, tblblogpost.heading, tblblogpost.postDate, tblconfirmedposts.confirmed
+				FROM tblblogpost, tblconfirmedposts
+				WHERE tblblogpost.postID=tblconfirmedposts.postID
+				AND tblblogpost.userID=?")){
+					//bind parameters
+					mysqli_stmt_bind_param($stmt, 'i', $uID);
+					
+					//execute query
+					mysqli_stmt_execute($stmt);
+					
+					//bind results
+					mysqli_stmt_bind_result($stmt, $content, $heading, $postDate, $status);
+					
+					//create table head
+					echo"
+					
+					<table class='table-hover table'>
+					<thead>
+						<tr>
+							<th><h5>Heading</h5></th>
+							<th><h5>Body</h5></th>
+							<th><h5>Date/Time</h5></th>
+							<th><h5>Verification Status</h5></th>
+						</tr>
+					</thead>
+					<tbody>
+					";
+					
+					//fetch and display results
+					while (mysqli_stmt_fetch($stmt)){
+						echo"
+							
+						<tr>	
+						<td>$heading</td>
+						<td>$content</td>
+						<td>$postDate</td>
+						<td>"; if($status==1){echo"Verified";}else{echo "Pending";}echo"</td>
+						</tr>
+							
+						
+						
+						";
+						
+					}//end of while
+					echo"</tbody></table>";		
+					mysqli_stmt_close($stmt);
+				}//end of stmt
+				mysqli_close($mysqli);
+			
+			
+			
+			?>
+		
+		</div>
+		
+		<hr/>
 			<br/>
 			<form class="form-horizonal" action="userAccount.php" method="get" onsubmit="return confirmation(this)">
-				<div class="col-sm-10">
+				<div class="col-sm-12">
 					<input type="submit" class="btn btn-outline-primary form-control sincerely" 
 					name="delet" value="Delete Account" onClick="return confirmation();"/>
 				</div>

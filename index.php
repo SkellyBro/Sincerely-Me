@@ -204,12 +204,13 @@ session_start();
 		  $content="";
 		  $postDate="";
 		  $imageName="";
+		  $userID=0;
 		  
 			include('dbConnect.php');
 			
 			if($stmt=mysqli_prepare($mysqli, 
 			"SELECT tblblogpost.postID, tbluser.username, tblblogpost.heading, tblblogpost.content, 
-			tblblogpost.postDate, tblimages.imageName
+			tblblogpost.postDate, tblimages.imageName, tbluser.userID
 			FROM tbluser, tblblogpost, tblconfirmedposts, tblimages
 			WHERE tbluser.userID=tblblogpost.userID 
 			AND tblblogpost.postID=tblconfirmedposts.postID
@@ -221,7 +222,7 @@ session_start();
 				mysqli_stmt_execute($stmt);
 				
 				//bind results
-				mysqli_stmt_bind_result($stmt, $postID, $username, $heading, $content, $postDate, $imageName);
+				mysqli_stmt_bind_result($stmt, $postID, $username, $heading, $content, $postDate, $imageName, $userID);
 				
 				while(mysqli_stmt_fetch($stmt)){
 					$preview=substr($content,0,100);
@@ -239,7 +240,6 @@ session_start();
 						</div>";
 						}
 						
-
 					echo"
 						  <h2 class='entry-title'>
 							 <a href='viewBlogSingle.php?postID=$postID'>$heading</a>
@@ -247,7 +247,7 @@ session_start();
 
 						  <div class='entry-meta'>
 							<ul>
-							  <li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php'>$username</a></li>
+							  <li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php?userID=$userID&uName=$username'>$username</a></li>
 							  <li class='d-flex align-items-center'><i class='icofont-wall-clock'></i> <a href='blog-single.html'><time datetime='2020-01-01'>$postDate</time></a></li>
 							  <li class='d-flex align-items-center'><i class='icofont-comment'></i> <a href='blog-single.html'>12 Comments</a></li>
 							</ul>
@@ -263,6 +263,7 @@ session_start();
 						</article><!-- End blog entry -->
 					
 					";
+					echo"$postID";
 				}//end of fetch
 				
 			mysqli_stmt_close($stmt);

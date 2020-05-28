@@ -99,9 +99,9 @@
 			
 			if($blogInsert){
 				if($tagInsert && $imageInsert && $confirmInsert){
-					$success.="<br/>Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!";
+					$success.="<br/>Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!<br/> Please be advised that your post will need to be verified by an administrator before it is made public, this may take some time.";
 				}else if($tagInsert && $confirmInsert){
-					$success.="<br/>Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!";
+					$success.="<br/>Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!<br/> Please be advised that your post will need to be verified by an administrator before it is made public, this may take some time.";
 				}
 			}
 		}//end of count

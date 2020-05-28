@@ -1,3 +1,23 @@
+<?php 
+	
+	$count=0;
+	$feedback="";
+	
+	$username="";
+	$description="";
+	$picture="";
+	$email="";
+	
+	$result[]="";
+	
+	if(isset($_GET)){
+		$userID=$_GET['userID'];
+		$uName=$_GET['uName'];
+	}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -122,8 +142,9 @@
 
         <ol>
           <li><a href="index.php">Home</a></li>
+          <li><a href="viewUserProfile.php"><?php global $uName; echo"$uName's"?> Profile</a></li>
         </ol>
-        <h2>Sincerely, Me.</h2>
+        <h2><?php global $uName; echo"$uName's"?> Profile</h2>
 
       </div>
 	  
@@ -131,9 +152,65 @@
 
     <!-- ======= Blog Section ======= -->
     <section id="form">
-      
+      <div class="container"> 
 	  <!--Content Here :0-->
+	  <?php
+	  global $userID;
 	  
+	    require("dbConnect.php");
+		  
+		  if($stmt=mysqli_prepare($mysqli, 
+		  "SELECT tbluser.description, tbluser.pictureID, tbluser.email FROM tbluser WHERE userID=?")){
+				  //bind entered parameters to mysqli object
+				mysqli_stmt_bind_param($stmt, "i", $userID);
+				
+				//execute the stmt
+				mysqli_stmt_execute($stmt);
+				
+				//get results of query
+				mysqli_stmt_bind_result($stmt, $description, $picture, $email);
+						
+					if(mysqli_stmt_fetch($stmt)){
+							/*Echo user profile information*/
+							echo"<div class='row'>";
+								//username
+								echo"<div class='col-lg-6'> <h4>Username:</h4> <h5>$uName</h5>";
+								
+								//Contact
+								echo"<br/><h4>Contact Information:</h4>";
+								if($email!=null || $email!=""){					
+									echo"<h5>$email</h5>";
+								}else{
+									echo"<h5>This user has not set a contact email.</h5>";
+								}
+								
+								//Description
+								echo"<br/><h4>Description:</h4>";
+								if($description!=null || $description!=""){					
+									echo"<h5>$description</h5></div>";
+								}else{
+									echo"<h5>This user has not set a description.</h5></div>";
+								}
+								
+								//Image
+								echo"<div class='col-lg-6'><h4>Avatar:</h4>";
+								if($picture!=null || $picture!=""){
+									echo"<img src='accountAvatar/$picture' style='width:300px; height:200px;'/>";
+								}else{
+									echo"<h5>This user has not set a description.</h5>";
+								}
+								echo"</div>";
+							echo"</div>";
+					}else{
+						echo"<h6 class='error'>Database error encountered. Please contact an administrator for assistance.</h6>";
+					}
+				 /* close statement */
+				mysqli_stmt_close($stmt);
+			}//end of stmt
+			//close connection
+			mysqli_close($mysqli);
+	  ?>
+	  </div>
 	  
     </section><!-- End Blog Section -->
 
