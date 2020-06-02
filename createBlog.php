@@ -50,7 +50,7 @@
 		$tags= array();
 		//for each element in $raw, trim the whitespace off the element and cram it into the $tags array
 		foreach($raw as $tag){$tags[]= trim($tag);}
-		
+
 		//validate code so it fits the format
 		validate($quill_json, $title, $tags);
 		
@@ -408,10 +408,33 @@
 			$count++;
 		}//end of count
 		
-		if(count($tags)==0){
-			$feedback.="<br/> You must tag your post.";
+		//validation for empty arrays
+		/*This code isn't mine
+		Code Author: James
+		Code Adapted From: https://stackoverflow.com/questions/2216052/how-to-check-whether-an-array-is-empty-using-php
+		Code Accessed On: 1/06/2020
+		*/
+		$emptyArrayTest=array_filter($tags);
+		
+		if(empty($emptyArrayTest)){
+			$feedback.="<br/> You must tag your post!";
 			$count++;
-		}//end of count
+		}
+		
+		//validation for empty tags between tags
+		/*This code isn't mine
+		Code Author: Tyler Carter
+		Code Adapted From: https://stackoverflow.com/questions/2216052/how-to-check-whether-an-array-is-empty-using-php
+		Code Accssed On: 1/06/2020
+		
+		*/
+		foreach ($tags as $key => $value) {
+			if (empty($value)) {
+			   //unset($tags[$key]);
+			   $feedback.="<br/> Please do not enter empty tags.";
+			   $count++;
+			}
+		}
 		
 	}//end of validation
 	
@@ -618,7 +641,7 @@
 	  <h6>You can create your own blogpost here! Be as descriptive as you would like, this is a safe place for you to tell it as it is.</h6>
 	  <br/>
 	  <!--Content Here :0-->
-	  <form id="target" class="form-horizontal" action="createBlog.php" method="post" onsubmit="return valBlog(this)" enctype="multipart/form-data">
+	  <form id="target" class="form-horizontal" action="createBlog.php" method="post" onSubmit="return valBlog(this)" enctype="multipart/form-data">
 	  
 			<div class="form-group"> 
 				<label class="control-label col-sm-2"><h4>Blog Title:</h4></label>

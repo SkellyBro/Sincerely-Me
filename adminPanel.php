@@ -18,7 +18,6 @@
 		//create new date object for the insert into the database
 		$date=date('Y-m-d H:i:s');
 		
-		
 		//validate post data
 		if($quill_json=="" || $quill_json==null){
 			$count++;
@@ -32,6 +31,7 @@
 		}		
 		
 		if($count==0){
+			
 			//magic code that renders the quill delta into readable text
 			try {
 				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
@@ -39,24 +39,25 @@
 			} catch (\Exception $e) {
 				echo $e->getMessage();
 			}
-			
+
 			//validate post data
 			if($result=="" || $result==null){
 				$count++;
 				$feedback.="<br/> Your post cannot be empty.";
 			}else if(strlen($result)<20){
 				$count++;
-				$feedback.="<br/> Your post cannot be less than 100 characters.";
+				$feedback.="<br/> Your post cannot be less than 20 characters.";
 			}	
-			
+
 			//include database connections
-				include('dbConnect.php');
+			include('dbConnect.php');
 				
 			//sanitize data
-			$result= filter_var($result, FILTER_SANITIZE_STRING); 
+			//$result= filter_var($result, FILTER_SANITIZE_STRING); 
 			
 			//sanitize data going into MySQL
 			$result= mysqli_real_escape_string($mysqli, $result);
+			
 				
 			if($count==0){	
 				
@@ -114,8 +115,10 @@
   
    <!--Quill Link-->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+   <link rel="stylesheet" type="text/css" href="node_module/quill-emoji/dist/quill-emoji.css">
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="node_modules/quill-emoji/dist/quill-emoji.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0

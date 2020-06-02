@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2020 at 12:24 AM
+-- Generation Time: Jun 02, 2020 at 03:54 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.6
 
@@ -48,9 +48,17 @@ INSERT INTO `tbladmin` (`userID`, `adminID`) VALUES
 CREATE TABLE `tblblogcomments` (
   `commentID` int(5) NOT NULL,
   `content` varchar(400) NOT NULL,
-  `postDate` date NOT NULL,
+  `postDate` datetime NOT NULL,
   `postID` int(5) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `tblblogcomments`
+--
+
+INSERT INTO `tblblogcomments` (`commentID`, `content`, `postDate`, `postID`) VALUES
+(1, 'Test comment 1', '2020-05-26 23:45:53', 29),
+(2, 'Test Comment 2', '2020-05-26 23:47:35', 29);
 
 -- --------------------------------------------------------
 
@@ -84,6 +92,14 @@ CREATE TABLE `tblbloggercomments` (
   `commentID` int(5) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `tblbloggercomments`
+--
+
+INSERT INTO `tblbloggercomments` (`userID`, `commentID`) VALUES
+(9, 1),
+(9, 2);
+
 -- --------------------------------------------------------
 
 --
@@ -109,9 +125,13 @@ INSERT INTO `tblblogpost` (`postID`, `content`, `heading`, `postDate`, `userID`)
 (22, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam ut gravida sem. Donec elementum facilisis euismod. Duis ac dictum leo. Duis ornare enim vel arcu convallis semper. Etiam in laoreet neque. Nullam dignissim augue eget nunc porttitor faucibus. Cras sit amet neque ante. Integer eu risus ligula. </p>', 'Test Title 630', '2020-05-22 00:00:00', 7),
 (25, '<p>I wanted to create a safe space to express how you feel without revealing who you are. 		The ultimate bloggers dream to ventilate every thought, feeling, and behaviour, without the fear of anyone knowing your identity. 		A group journal, where others can be inspired by your narrative as you relieve all that’s pent up. 		This is a judgement and abuse free place. We only encourage supportive networking. 		If you’re interested in booking a therapeutic counselling session, check out our website <a href=\"https://theracoconsultants.com/\">here</a>. 		<br/><br/> -Antonia Mootoo</p>', 'Twilight Of The Thunder God', '2020-05-25 22:40:50', 9),
 (26, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan</p>', 'Twilight Of The Thunder God', '2020-05-25 23:18:20', 9),
-(27, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan</p>', 'No Image Test', '2020-05-25 23:28:49', 9),
 (28, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan</p>', 'No Image Test', '2020-05-25 23:58:29', 9),
-(29, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi tincidunt tincidunt enim eget posuere. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Cras ut neque quam. Quisque cursus condimentum libero, quis dignissim leo consectetur eu.</p>', 'Null Image', '2020-05-26 00:17:53', 9);
+(29, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi tincidunt tincidunt enim eget posuere. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Cras ut neque quam. Quisque cursus condimentum libero, quis dignissim leo consectetur eu.</p>', 'Null Image', '2020-05-26 00:17:53', 9),
+(30, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut. Donec malesuada lorem sed purus facilisis, id fringilla quam iaculis. Mauris convallis elit nec varius blandit. Nulla pharetra pellentesque magna. Duis non nunc feugiat, egestas dolor non, dapibus nunc. Nullam neque velit, luctus et lobortis sed, aliquam sit amet massa. Suspendisse blandit nisi vel nulla sodales vehicula. Sed facilisis iaculis enim sed semper.</p>', 'Test Blogpost for the Admin Check', '2020-06-02 01:24:37', 7),
+(31, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut. Donec malesuada lorem sed purus facilisis, id fringilla quam iaculis. Mauris convallis elit nec varius blandit. Nulla pharetra pellentesque magna. Duis non nunc feugiat, egestas dolor non, dapibus nunc. Nullam neque velit, luctus et lobortis sed, aliquam sit amet massa. Suspendisse blandit nisi vel nulla sodales vehicula. Sed facilisis iaculis enim sed semper.</p>', 'Tag Test Heading', '2020-06-02 01:36:05', 7),
+(34, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut. Donec malesuada lorem sed purus facilisis, id fringilla quam iaculis. Mauris convallis elit nec varius blandit. Nulla pharetra pellentesque magna. Duis non nunc feugiat, egestas1231</p>', 'Let Me Live / Let Me Die', '2020-06-02 02:03:03', 7),
+(35, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut.09qw1</p>', 'Test Blog for Reasons', '2020-06-02 02:53:30', 7),
+(37, '<strong>This is a test to ensure that the formatting does not break anything on the home page.</strong><em>It really shouldn\'t break anything, but I\'m a little concerned.</p></em>', 'Edit Test', '2020-06-02 03:17:05', 9);
 
 -- --------------------------------------------------------
 
@@ -137,9 +157,13 @@ INSERT INTO `tblconfirmedposts` (`cPostID`, `postID`, `userID`, `confirmed`) VAL
 (4, 22, NULL, 0),
 (7, 25, 9, 1),
 (8, 26, 9, 1),
-(9, 27, 9, 1),
-(10, 27, 9, 1),
-(11, 29, 9, 1);
+(11, 29, 9, 1),
+(12, 30, 9, 1),
+(13, 31, NULL, 0),
+(14, 31, NULL, 0),
+(16, 34, NULL, 0),
+(17, 35, NULL, 0),
+(19, 37, 9, 1);
 
 -- --------------------------------------------------------
 
@@ -167,9 +191,14 @@ INSERT INTO `tblimages` (`imageID`, `imageName`, `postID`) VALUES
 (36, NULL, 25),
 (37, '5181QbXpzl.jpg', 26),
 (38, '872776_deus_ex.jpg', 26),
-(39, NULL, 27),
-(40, NULL, 27),
-(41, NULL, 29);
+(41, NULL, 29),
+(42, '890alena-aenami-million-little-pieces-1k.jpg', 30),
+(43, '540alena-aenami-rooflinesgirl-1k-2.jpg', 30),
+(44, NULL, 31),
+(47, NULL, 34),
+(48, '944alena-aenami-001-1.jpg', 35),
+(49, '84alena-aenami-005.jpg', 35),
+(51, NULL, 37);
 
 -- --------------------------------------------------------
 
@@ -205,7 +234,10 @@ CREATE TABLE `tblpmessage` (
 
 INSERT INTO `tblpmessage` (`pMessageID`, `pMessage`, `pMessageDate`, `userID`) VALUES
 (2, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan. Nulla ultricies tristique elementum. Donec semper sapien elit, eget euismod tellus facilisis at. Sed at dignissim sem, id suscipit libero. Nullam id ultricies nulla. Nunc blandit a metus eu consequat. Aenean luctus velit eu nunc placerat, sit amet consec</p>', '2020-05-25 00:00:00', 9),
-(3, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan', '2020-05-25 22:14:29', 9);
+(3, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan', '2020-05-25 22:14:29', 9),
+(4, ' This is a test for the emoji stuffs :0', '2020-05-29 21:38:53', 9),
+(8, 'Hello! I hope you all have a wonderful day today, regardless of what might be going on!', '2020-06-02 03:10:41', 9),
+(9, '<em>Test to ensure that the formatting for the post subsists.</p></em>', '2020-06-02 03:23:51', 9);
 
 -- --------------------------------------------------------
 
@@ -249,21 +281,26 @@ INSERT INTO `tbltags` (`tagID`, `postID`, `tagName`) VALUES
 (88, 26, 'are'),
 (89, 26, 'you'),
 (90, 26, 'friend'),
-(91, 27, 'hello'),
-(92, 27, 'how'),
-(93, 27, 'are'),
-(94, 27, 'you'),
-(95, 27, 'friend'),
-(96, 27, 'hello'),
-(97, 27, 'how'),
-(98, 27, 'are'),
-(99, 27, 'you'),
-(100, 27, 'friend'),
 (101, 29, 'hello'),
 (102, 29, 'how'),
 (103, 29, 'are'),
 (104, 29, 'you'),
-(105, 29, 'friend');
+(105, 29, 'friend'),
+(106, 30, 'test'),
+(107, 30, 'tags'),
+(108, 31, 'Test'),
+(109, 31, 'tag'),
+(110, 31, 'for'),
+(111, 31, 'system'),
+(112, 31, 'testing'),
+(115, 34, 'Test'),
+(116, 34, 'tag'),
+(117, 34, 'for'),
+(118, 34, 'system'),
+(119, 34, 'testing'),
+(120, 35, 'custom'),
+(121, 35, 'tags'),
+(123, 37, 'Edit');
 
 -- --------------------------------------------------------
 
@@ -289,7 +326,7 @@ CREATE TABLE `tbluser` (
 INSERT INTO `tbluser` (`userID`, `username`, `password`, `description`, `pictureID`, `email`, `regDate`, `position`) VALUES
 (7, 'jimmy', '5f4dcc3b5aa765d61d8327deb882cf99', '<p>Test Description</p>', '121skellyboi.jpg', 'test@gmail.com', '2020-05-08', 1),
 (8, 'JimbobTheSecond2', '5f4dcc3b5aa765d61d8327deb882cf99', NULL, NULL, NULL, '2020-05-08', 1),
-(9, 'jimmy2', '5f4dcc3b5aa765d61d8327deb882cf99', '<u><em><strong>Henlo, how are you?</p></strong></em></u>', NULL, NULL, '2020-05-13', 2),
+(9, 'jimmy2', '5f4dcc3b5aa765d61d8327deb882cf99', '<u><em><strong>Henlo, how are you?</p></strong></em></u>', '896alena-aenami-rooflinesgirl-1k-2.jpg', NULL, '2020-05-13', 2),
 (10, 'TestUser', 'dc647eb65e6711e155375218212b3964', NULL, NULL, NULL, '2020-05-20', 1);
 
 --
@@ -380,25 +417,25 @@ ALTER TABLE `tbluser`
 -- AUTO_INCREMENT for table `tblblogcomments`
 --
 ALTER TABLE `tblblogcomments`
-  MODIFY `commentID` int(5) NOT NULL AUTO_INCREMENT;
+  MODIFY `commentID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `tblblogpost`
 --
 ALTER TABLE `tblblogpost`
-  MODIFY `postID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `postID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `tblconfirmedposts`
 --
 ALTER TABLE `tblconfirmedposts`
-  MODIFY `cPostID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `cPostID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `tblimages`
 --
 ALTER TABLE `tblimages`
-  MODIFY `imageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `imageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `tblmessage`
@@ -410,13 +447,13 @@ ALTER TABLE `tblmessage`
 -- AUTO_INCREMENT for table `tblpmessage`
 --
 ALTER TABLE `tblpmessage`
-  MODIFY `pMessageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `pMessageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `tbltags`
 --
 ALTER TABLE `tbltags`
-  MODIFY `tagID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
+  MODIFY `tagID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
 
 --
 -- AUTO_INCREMENT for table `tbluser`

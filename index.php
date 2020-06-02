@@ -226,6 +226,7 @@ session_start();
 				
 				while(mysqli_stmt_fetch($stmt)){
 					$preview=substr($content,0,100);
+					$preview=strip_tags($preview);
 					
 					echo"
 						 <article class='entry'>";
@@ -249,12 +250,11 @@ session_start();
 							<ul>
 							  <li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php?userID=$userID&uName=$username'>$username</a></li>
 							  <li class='d-flex align-items-center'><i class='icofont-wall-clock'></i> <a href='blog-single.html'><time datetime='2020-01-01'>$postDate</time></a></li>
-							  <li class='d-flex align-items-center'><i class='icofont-comment'></i> <a href='blog-single.html'>12 Comments</a></li>
 							</ul>
 						  </div>
 
 						  <div class='entry-content'>
-							$preview...
+							<p>$preview...</p>
 							<div class='read-more'>
 							  <a href='viewBlogSingle.php?postID=$postID'>Read More</a>
 							</div>
@@ -263,7 +263,6 @@ session_start();
 						</article><!-- End blog entry -->
 					
 					";
-					echo"$postID";
 				}//end of fetch
 				
 			mysqli_stmt_close($stmt);
