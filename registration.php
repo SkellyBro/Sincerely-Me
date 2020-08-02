@@ -1,5 +1,7 @@
 <?php
-
+	/*This handles the registration for the website*/
+	
+	//this isset handles the actual registration
 	if(isset($_POST['submit'])){
 		$uName= $_POST['uName'];
 		$pass= $_POST['pass'];
@@ -167,6 +169,9 @@
 		
 	}//end of sanitize
 	
+	/*This function checks to see if the user's username has been taken
+	*$uN is the user's username
+	*/
 	function usernameCheck($uN){
 		global $count; 
 		global $feedback;

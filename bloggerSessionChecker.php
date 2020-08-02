@@ -1,4 +1,5 @@
 <?php
+//this is used to check if the logged in user is a blogger, if the user is not a blogger they are redirected to the login screen. 
     session_start();
 	if($_SESSION['position']!=1){
 		

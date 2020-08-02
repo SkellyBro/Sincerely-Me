@@ -1,10 +1,16 @@
 <?php
+	/*This page handles user profile functionality*/
 	session_start();
 	if($_SESSION['uName']==""){
 		
 		Header("Location:login.php?feedback=You must be logged in to access this page...");
 		
 	}
+	
+	//error handling variables
+	$count=0;
+	$feedback="";
+	$success="";
 	
 	//this is to get the informaiton stored in the session and to give a more personalized touch to the page
 	if(isset($_SESSION['uName'])){
@@ -21,9 +27,138 @@
 	//this is used to store the user's email
 	$email="";
 	
-	if(isset($_GET['delete'])){
-		//todo finish full functionality of application then do a systematic deletion of everything related to the user
+	//this isset handles post deletion
+	if(isset($_GET['deletePost'])){
+		//get postID
+		$blog=$_GET['postID'];
+		
+		//array to hold commentId's*/
+		$commentID=[];
+		$commentCount=0;
+		
+		//simple validation
+		if($blog==0 || $blog==null){
+			$count++;
+			$feedback.="<br/> ID for post could not be found, please try again later or contact a administrator for assistance.";
+		}
+		
+		include('dbConnect.php');
+		
+		//cascading delete
+		//delete tags
+		if($stmt=mysqli_prepare($mysqli, 
+		"DELETE FROM tbltags WHERE tbltags.postID=?")){
+			mysqli_stmt_bind_param($stmt, 'i', $blog);
+			if(!mysqli_stmt_execute($stmt)){
+				$count++;
+				$feedback.="<br/> Blogpost tags could not be deleted.";
+			}
+			mysqli_stmt_close($stmt);
+		}//end of delete tag
+		
+		if($stmt2=mysqli_prepare($mysqli,
+		//delete images
+		"DELETE FROM tblimages WHERE tblimages.postID=?")){
+			mysqli_stmt_bind_param($stmt2, 'i', $blog);
+			if(!mysqli_stmt_execute($stmt2)){
+				$count++;
+				$feedback.="<br/> Blogpost images could not be deleted.";
+			}
+			mysqli_stmt_close($stmt2);
+		}//end of delete images
+		
+		if($stmt3=mysqli_prepare($mysqli,
+		//delete confirmation
+		"DELETE FROM tblconfirmedposts WHERE tblconfirmedposts.postID=?")){
+			mysqli_stmt_bind_param($stmt3, 'i', $blog);
+			if(!mysqli_stmt_execute($stmt3)){
+				$count++;
+				$feedback.="<br/> Blogpost confirmation could not be deleted.";
+			}
+			mysqli_stmt_close($stmt3);
+		}//end of delete confirmation
+		
+		//due to the complicated nature of the blogposts, I have to get the comment information for the blogposts if any and delete those too
+		//get comment Id's
+		if($stmt4=mysqli_prepare($mysqli, 
+		"SELECT tblblogcomments.commentID
+		FROM tblblogcomments
+		WHERE tblblogcomments.postID=?")){
+			//bind post ID for the query
+			mysqli_stmt_bind_param($stmt4, "i", $blog);
+			
+			//execute query
+			if(mysqli_stmt_execute($stmt4)){
+				//get results
+				$result=mysqli_stmt_get_result($stmt4);
+			
+				while($row=mysqli_fetch_array($result, MYSQLI_NUM))
+				{
+					foreach ($row as $r)
+					{
+						$commentID[$commentCount]=$r;
+						$commentCount++;
+						
+					}
+				}//end of while loop
+				mysqli_stmt_close($stmt4);
+			}//end of if
+		}//end of stmt
+		
+		if(count($commentID)!=0){
+			
+			foreach($commentID as $comment){
+				//delete the record that maintain which blogger commented on which post
+				if($stmt=mysqli_prepare($mysqli,
+				"DELETE FROM tblbloggercomments WHERE tblbloggercomments.commentID=?")){
+					mysqli_stmt_bind_param($stmt, 'i', $comment);
+					if(!mysqli_stmt_execute($stmt)){
+						$count++;
+						$feedback.="<br/> Comments could not be deleted.";
+					}
+					mysqli_stmt_close($stmt);
+				}//end of delete confirmation
+
+				if($stmt3=mysqli_prepare($mysqli, 
+				//delete any reports
+				"DELETE FROM tblcommentreport WHERE tblcommentreport.commentID=?")){
+					mysqli_stmt_bind_param($stmt3, 'i', $comment);
+					
+						if(!mysqli_stmt_execute($stmt3)){
+							$count++;
+							$feedback.="<br/> An error occured with deleting the user's comment report. Please contact a technician for assistance.";
+						}
+					mysqli_stmt_close($stmt3);
+				}//end of stmt
+			}//end of foreach
+		}//end of if
+		
+		//final delete on comments 
+		if($stmt5=mysqli_prepare($mysqli,
+		"DELETE FROM tblblogcomments WHERE tblblogcomments.postID=?")){
+			mysqli_stmt_bind_param($stmt5, 'i', $blog);
+			if(!mysqli_stmt_execute($stmt5)){
+				$count++;
+				$feedback.="<br/> User comments could not be deleted.";
+			}
+			mysqli_stmt_close($stmt5);
+		}//end of delete confirmation
+		
+		//delete blogpost
+			if($stmt6=mysqli_prepare($mysqli,
+			"DELETE FROM tblblogpost WHERE tblblogpost.postID=?")){
+			mysqli_stmt_bind_param($stmt6, 'i', $blog);
+			if(mysqli_stmt_execute($stmt6)){
+				$success.="Blogpost deleted successfully!";
+			}else{
+				$count++;
+				$feedback.="<br/>User Blogposts could not be deleted.";
+			}
+			mysqli_stmt_close($stmt6);
+		}//end of delete confirmation
+	
 	}//end of isset
+	
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,6 +225,8 @@
             <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="team.html">Team</a></li>
+			  <li><a href="services.html">Services</a></li>
+			  <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -103,14 +240,13 @@
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-           <?php
+            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -121,6 +257,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -161,11 +298,11 @@
 		
 		?>
 		
-		<h5>
-			  This is your account, you can change your personal information here. 
-			  All information is kept secure and its completely optional to provide any kind of information as well, 
-			  if you would prefer to maintain anonymity.
-		  </h5>
+		<h6>
+			This is your account, you can change your personal information here. 
+			All information is kept secure and its completely optional to provide any kind of information as well, 
+			if you would prefer to maintain anonymity.
+		</h6>
 
       </div>
 	  
@@ -179,6 +316,25 @@
 		  <h3>Your Information: </h3>
 		  <?php
 		  
+		global $feedback;
+		global $count; 
+		global $success;
+		
+		 if($feedback != ""){
+	 
+		 echo "<div class= 'alert alert-danger container'>"; 
+		   if ($count == 1) echo "<strong>$count error found.</strong>";
+		   if ($count > 1) echo "<strong>$count errors found.</strong>";
+		 echo "$feedback
+		   </div>";
+		}//end of error code
+		
+		//this is feedback code for success messages
+		if($success != ""){
+			 echo "<div class= 'alert alert-success container'>"; 
+			 echo "$success
+			   </div>";
+		}//end of if statement for error
 			
 		  
 		  //get description from db if any. 
@@ -236,8 +392,7 @@
 		  ?>
 		  <br/>
 		  <div class="col-sm-12">
-			<?php echo"<a href='editDescription.php?description=$description&email=$email'>
-			<button class='btn btn-outline-primary form-control sincerely'>Edit Account Details</button></a>"; ?>
+			<?php echo"<a href='editDescription.php?email=$email&description=$description&picture=$picture'> <button class='btn btn-outline-primary form-control sincerely'>Edit Account Details</button></a>"; ?>
 			<br/>
 		</div>
 		
@@ -250,16 +405,18 @@
 			
 			<?php
 				//initalize all variables
+				$postID=0;
 				$content="";
 				$heading="";
 				$postDate="";
 				$status="";
+				$reason="";
 				
 				include('dbConnect.php');
 				
 				//this query is to get all of the user's posts and display them.
 				if($stmt=mysqli_prepare($mysqli, 
-				"SELECT tblblogpost.content, tblblogpost.heading, tblblogpost.postDate, tblconfirmedposts.confirmed
+				"SELECT tblblogpost.postID, tblblogpost.content, tblblogpost.heading, tblblogpost.postDate, tblconfirmedposts.confirmed, tblconfirmedposts.reason
 				FROM tblblogpost, tblconfirmedposts
 				WHERE tblblogpost.postID=tblconfirmedposts.postID
 				AND tblblogpost.userID=?")){
@@ -270,7 +427,7 @@
 					mysqli_stmt_execute($stmt);
 					
 					//bind results
-					mysqli_stmt_bind_result($stmt, $content, $heading, $postDate, $status);
+					mysqli_stmt_bind_result($stmt, $postID, $content, $heading, $postDate, $status, $reason);
 					
 					//create table head
 					echo"
@@ -282,6 +439,7 @@
 							<th><h5>Body</h5></th>
 							<th><h5>Date/Time</h5></th>
 							<th><h5>Verification Status</h5></th>
+							<th></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -292,15 +450,21 @@
 						echo"
 							
 						<tr>	
-						<td>$heading</td>
+						<td><a href='viewBlogSingle.php?postID=$postID&status=$status'>$heading</a></td>
 						<td>$content</td>
 						<td>$postDate</td>
-						<td>"; if($status==1){echo"Verified";}else{echo "Pending";}echo"</td>
-						</tr>
-							
+						<td>"; if($status==1)
+						{echo"<p>Verified</p>";}
+						else if($status==2){echo "<p class='error'>Post Denied</p> <p class='error'>Reason: $reason</p>";} 
+						else {echo"<p>Pending</p>";}echo"</td>
+						<td><a class='btn btn-outline-primary sincerely' href='editPost.php?postID=$postID'>Edit Post</a></td>
 						
-						
-						";
+						<td><form method='get' action='userAccount.php' onsubmit='return blogConfirmation(this)'>	
+						<input type='hidden' value='$postID' name='postID' />
+						<input type='submit' class='btn btn-outline-primary form-control sincerely'
+						name='deletePost' value='Delete Post'/>
+						</form></td>
+						</tr>";
 						
 					}//end of while
 					echo"</tbody></table>";		
@@ -316,10 +480,15 @@
 		
 		<hr/>
 			<br/>
-			<form class="form-horizonal" action="userAccount.php" method="get" onsubmit="return confirmation(this)">
+			<form class="form-horizonal" action="deleteUser.php" method="post" onsubmit="return confirmation(this)">
 				<div class="col-sm-12">
+					
+					<input type="hidden" name="userID" value="<?php global $uID; echo $uID; ?>"/>
+					
+					<input type="hidden" name="page" value="login.php"/>
+					
 					<input type="submit" class="btn btn-outline-primary form-control sincerely" 
-					name="delet" value="Delete Account" onClick="return confirmation();"/>
+					name="deleteUser" value="Delete Account" onClick="return confirmation();"/>
 				</div>
 			</form>
 		  

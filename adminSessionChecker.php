@@ -1,4 +1,5 @@
 <?php
+//this is used to check if the logged in user is an administrator, if the user is not an admin they are redirected to the login screen. 
     session_start();
 	if($_SESSION['position']!=2){
 		

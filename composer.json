@@ -1,5 +1,6 @@
 {
     "require": {
-        "deanblackborough/php-quill-renderer": "^1.01"
+        "deanblackborough/php-quill-renderer": "^1.01",
+        "phpmailer/phpmailer": "^6.1"
     }
 }

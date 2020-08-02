@@ -1,5 +1,5 @@
 <?php
-
+	/*This page is used by the admins to confirm a user's blogpost before it is made public to the rest of the site*/
 	require('adminSessionChecker.php');
 	
 	//set up error variables
@@ -7,14 +7,25 @@
 	$count=0;
 	$success="";
 	
+	/*this isset catches the postID sent from viewUserPosts.php
+	The post ID is stored in the session as a precaution, if the page reloads then the postID would not be lost.
+	The first isset captures the postID and stores it into the session, the second isset only runs if the postID is not isset i.e. a page reload took place
+	Then the second isset will try to get the postID from the session.
+	
+	*/
 	if(isset($_GET['postID'])){
 		$postID=$_GET['postID'];
+		$_SESSION['confirmPostID']=$postID;
+	}else if(isset($_SESSION['confirmPostID'])){
+		$post=$_SESSION['confirmPostID'];
 	}
 	
+	//capture userID from session. 
 	if(isset($_SESSION['uID'])){
 		$uID=$_SESSION['uID'];
 	}//end of isset
 	
+	//confirm post
 	if(isset($_POST['confirm'])){
 		//make database connection
 		include('dbConnect.php');
@@ -22,10 +33,10 @@
 		//get postIDs
 		$postID=$_POST['postID'];
 		
-		//set up the confirmed variable
-		$confirmed=true;
+		//set up the confirmed variable (1 being true, 2 being false)
+		$confirmed=1;
 	
-		//make database string
+		//make database string to update the post's confirmation status.
 		if($stmt=mysqli_prepare($mysqli, 
 		"UPDATE tblconfirmedposts 
 		SET tblconfirmedposts.userID=?, tblconfirmedposts.confirmed=? 
@@ -34,20 +45,61 @@
 			mysqli_stmt_bind_param($stmt, "isi", $uID, $confirmed, $postID);
 			//execute query
 			if(mysqli_stmt_execute($stmt)){
-				$success.="<br/>Blogpost confirmed successfully! You will be returned to the blogpost list shortly.";
+				//if post was confirmed successfully
+				$success.="Blogpost confirmed successfully! You will be returned to the blogpost list shortly.";
 				header("refresh:2; url=viewUserPosts.php" );
 			}else{
-				$feedback.="<br/>Blogpost could not be confirmed. Please contact a technician for assistance.";
+				//if post was not confirmed
+				$feedback.="Blogpost could not be confirmed. Please contact a technician for assistance.";
 				$count++;
 			}
 			
 		}//end of if-stmt
 	}//end of confirm isset
 	
+	//this isset handles the denial of a blogpost.
 	if(isset($_POST['deny'])){
-		$count++;
-		$feedback.="<br/> This hasn't been built out yet. ";
-	}
+		//include database connection
+		include('dbConnect.php');
+		//init variable
+		$reason="";
+		
+		//get variable from post
+		if(isset($_POST['reason'])){
+			$reason=$_POST['reason'];
+		}
+		$postID=$_POST['postID'];
+		//set confirmation status (1 being true, 2 being false)
+		$confirmed=2;
+		
+		//if reason is not empty then run db query
+		if($reason!="" || $reason!=null){
+			//make database string to update the blogpost's confirmation status
+			if($stmt=mysqli_prepare($mysqli, 
+			"UPDATE tblconfirmedposts 
+			SET tblconfirmedposts.userID=?, tblconfirmedposts.confirmed=?, tblconfirmedposts.reason=?
+			WHERE tblconfirmedposts.postID=?")){
+				//bind parameter
+				mysqli_stmt_bind_param($stmt, "issi", $uID, $confirmed, $reason, $postID);
+				//execute query
+				if(mysqli_stmt_execute($stmt)){
+					//successful denial of blogpost
+					$success.="Blogpost denied successfully! You will be returned to the blogpost list shortly.";
+					header("refresh:2; url=viewUserPosts.php" );
+				}else{
+					//unsuccessful denial of blogpost
+					$feedback.="<br/>Blogpost could not be denied. Please contact a technician for assistance.";
+					$count++;
+				}
+			}//end of stmt
+		}else{
+			$feedback.="<br/>You must select a reason to deny the post.";
+			$count++;
+		}
+		
+		
+		
+	}//end of deny
 	
 ?>
 
@@ -104,13 +156,15 @@
       </div>
 
       <nav class="nav-menu d-none d-lg-block">
-        <ul>
+         <ul>
           <li class="active"><a href="index.php">Home</a></li>
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
+              <li><a href="team.html">Team</a></li> 
+			  <li><a href="services.html">Services</a></li>
+              <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -124,14 +178,13 @@
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <?php
+            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -142,6 +195,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -218,8 +272,8 @@
 	  <!--Content Here :0-->
 	  <?php
 	  //create query to get all of the user's data for their post. 
-	  //initialize variables to store user information
-	
+	  //initialize variables to store user information to display a preview of the user's blogpost.
+	  //the code below is a copy-paste of the code in confirmBlog.php, there are more indepth comments on that page that explains what the code does.
 	
 	  $username="";
 	  $heading="";
@@ -319,11 +373,15 @@
 							  /*
 							  This code is used to determine how the images should be displayed based on the image count
 							  */
-							  if($imageCount>=1){
-								  echo" <img src='blogImages/$image[0]' class='img-fluid'>";
-							  }else if($imageCount==1){
-								  echo" <img src='blogImages/$image[0]' class='img-fluid'>";
+							  if($image[0]!="" || $image[0]!=null ){
+								   
+								  if($imageCount>=1){
+									echo" <img src='blogImages/$image[0]' class='img-fluid'>";
+								  }else if($imageCount==1){
+									echo" <img src='blogImages/$image[0]' class='img-fluid'>";
+								  }
 							  }
+							 
 							//continuation of echoing out the article itself	
 							echo"
 							  </div>
@@ -334,8 +392,8 @@
 
 							  <div class='entry-meta'>
 								<ul>
-								  <li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='blog-single.html'>$username</a></li>
-								  <li class='d-flex align-items-center'><i class='icofont-wall-clock'></i> <a href='blog-single.html'><time datetime='2020-01-01'>$postDate</time></a></li>
+								  <li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php?userID=$userID&uName=$username'>$username</a></li>
+								  <li class='d-flex align-items-center'><i class='icofont-wall-clock'></i><time datetime='2020-01-01'>$postDate</time></a></li>
 								</ul>
 							  </div>
 
@@ -382,18 +440,9 @@
 				}
 			}//end of if-stmt
 			
-			/*
-			
-				Todo: Ask Antonia, what she would like done in the event where she doesn't accept a post. 
-				Should the user be informed and the blogpost deleted or should the blogpost just be straight-up deleted 
-				no questions asked. 
-				
-				This would result in extended functionality for a notificaiton area to inform the user of this. 
-				Which coincides with the existing idea to build a notificaiton system. 
-			
-			*/
 	  
-	  //Form used to confirm or deny the user's post
+	  /*These are two froems used to confirm or deny a user's blogpost, the first form handles the confirmation of a blogpost.
+	  The second form handles the denial of a blogpost, requiring the admin to give a reason for the user's blogpost to be denied.*/
 	  echo"
 			  <form class='form-horizontal' method='post' action='confirmPost.php'>
 			  
@@ -402,10 +451,47 @@
 					<input type='submit' class='btn btn-outline-primary form-control sincerely' name='confirm' value='Confirm Post'/>
 					
 				</div>
+				</form>
+				
+				<form class='form-horizontal' method='post' action='confirmPost.php' onsubmit='return valReason(this)'>
 				<br/>
 				<div class='col-sm-12'>
-				
-					<input type='submit' class='btn btn-outline-primary form-control sincerely' name='deny' value='Deny Post'/>
+					<input type='hidden' name='postID' value='$postID'
+					<div>
+					<button type='button' class='btn btn-outline-primary form-control sincerely' data-toggle='collapse' 
+					data-target='#denial'>View Denial Options</button>
+					</div>
+					<div id='denial' class='collapse'>
+						<br/>
+						<div class='container'>
+							<div class='col-sm-8'>
+								<h4>Reasons:</h4>
+								<input type='radio' id='violence' name='reason' value='Violence'>
+								<label for='violence'>Violence</label><br>
+								
+								<input type='radio' id='bullying' name='reason' value='Bullying'>
+								<label for='bullying'>Bullying</label><br>
+								
+								<input type='radio' id='harassment' name='reason' value='Harassment'>
+								<label for='harassment'>Harassment</label><br>
+								
+								<input type='radio' id='suicide/self-injury' name='reason' value='Suicide/Self-Injury'>
+								<label for='suicide/self-injury'>Suicide/Self-Injury</label><br>
+								
+								<input type='radio' id='nudity' name='reason' value='Nudity'>
+								<label for='nudity'>Nudity</label><br>
+								
+								<input type='radio' id='spam' name='reason' value='Spam'>
+								<label for='Spam'>Spam</label><br>
+								
+								<span class='error' id='reason_err'></span>
+								<br/>
+								<br/>
+							</div>
+							<input type='submit' class='btn btn-outline-primary form-control sincerely' name='deny' onClick='return valReason();'/>
+						</div>
+					</div>
+					
 				
 				</div>
 			  

@@ -1,6 +1,42 @@
 <?php
-
+/*This is the homepage for the website*/
+//session start
 session_start();
+//set up error variables
+$count=0;
+$feedback="";	
+	//this handles some of the search for the system. 
+	if(isset($_POST['search'])){
+		$search=$_POST['search'];
+		global $count;
+		global $feedback;
+		
+		//validate and sanitize search string
+		if($search=="" || $search==null){
+			$count++;
+			$feedback.="<br/> You haven't entered anything to search!";
+		}else if(!preg_match("/\\w|\\s+/", $search)){
+			$count++;
+			$feedback.="<br/> No special characters allowed!";
+		}else if(strlen($search)<2){
+			$count++;
+			$feedback.="<br/> Your search string cannot be less than 2 characters.";
+		}else if(strlen($search)>200){
+			$count++;
+			$feedback.="<br/> Your search string cannot be more than 200 characters.";
+		}
+		
+		if($count==0){
+			//sanitize
+			$search= filter_var($search, FILTER_SANITIZE_STRING);
+			
+			include('dbConnect.php');
+			$search= mysqli_real_escape_string($mysqli, $search);
+			
+			header('Location:searchResults.php?search='.$search);
+		}
+		
+	}//end of search isset
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +56,9 @@ session_start();
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
+<!--Stuff for AJAX-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
   <!-- Vendor CSS Files -->
   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/vendor/icofont/icofont.min.css" rel="stylesheet">
@@ -28,9 +67,11 @@ session_start();
   <link href="assets/vendor/owl.carousel/assets/owl.carousel.min.css" rel="stylesheet">
   <link href="assets/vendor/venobox/venobox.css" rel="stylesheet">
   
+  
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/custom.css" rel="stylesheet">
+
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -56,12 +97,15 @@ session_start();
 
       <nav class="nav-menu d-none d-lg-block">
         <ul>
+		
           <li class="active"><a href="index.php">Home</a></li>
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="team.html">Team</a></li>
+			  <li><a href="services.html">Services</a></li>
+			  <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -75,15 +119,14 @@ session_start();
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
           
-          <li><a href="contact.html">Contact</a></li>
 		  <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -94,6 +137,7 @@ session_start();
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -139,7 +183,7 @@ session_start();
 		-->
 		
 		<?php
-			
+			//this gets the daily message from the admin.
 			//make connection to database and pull message
 			include('dbConnect.php');
 			
@@ -160,11 +204,14 @@ session_start();
 				//fetch results
 				if(mysqli_stmt_fetch($stmt)){
 					echo"<h6>$pMessage</h6>";
+					
 					echo"<div class='row col-sm-12'>
 							
 							<div class='col-sm-6'>--$username</div>			
 						
 						</div>";
+						
+						echo"<br/><small>Reminder: If you feel like you're in need of therapy, you can create a booking with Ms. Antonia Mootoo at <a href='https://theracoconsultants.com/'>theracoconsultants.com</a></small>";
 				}else{
 					echo"
 					
@@ -196,7 +243,279 @@ session_start();
           <div class="col-lg-8 entries">
 		  
 		  <?php
+		  //display notifications
+		  /*Users can get notifications if:
+		  *Their blogpost has been confirmed
+		  *Their blogpost has been denied
+		  *Their blogpost has been commented on
 		  
+		  Which means I need to do three sql queries and do some cool stuff. Oy vey.
+		  */
+		  
+			if(isset($_SESSION['uID'])){
+			  $uID=$_SESSION['uID'];
+			  
+			  $messages="";
+			  $comments="";
+			  $output="";
+			  $heading="";
+			  $commentReport="";
+			  $messageReport="";
+			  $blogpostConfirmations="";
+			  //this query would get the blogpost confirmation notifications
+			  include('dbConnect.php');
+			  if($stmt2=mysqli_prepare($mysqli, "SELECT tblblogpost.heading, tblblogpost.postID, tblblogpost.postDate
+				FROM tblblogpost, tblconfirmedposts, tbluser
+				WHERE tblblogpost.postID=tblconfirmedposts.postID
+				AND tblblogpost.userID=tbluser.userID
+				AND tbluser.userID=?
+				AND tblconfirmedposts.confirmed=1
+				AND tbluser.position=1
+				ORDER By tblblogpost.postDate DESC LIMIT 2")){
+					mysqli_stmt_bind_param($stmt2, 'i', $uID);
+					
+					mysqli_stmt_execute($stmt2);
+					
+					//get results
+					$result=mysqli_stmt_get_result($stmt2);
+					
+					while($row=mysqli_fetch_array($result))
+					{
+						
+					  $output .= '
+					  <li>
+					  <a href="viewBlogSingle.php?postID='.$row["postID"].'">
+					  <strong>'.$row["heading"].' has been confirmed</strong><br />
+					  <small><em>'.$row["postDate"].'</em></small>
+					  </a>
+					  </li>
+					  ';
+				   
+					}//end of while loop
+					mysqli_stmt_close($stmt2);
+				}//end of stmt
+				mysqli_close($mysqli);
+				
+				//this query would get the blogpost denial notifications
+				 include('dbConnect.php');
+				if($stmt3=mysqli_prepare($mysqli, "SELECT tblblogpost.heading, tblblogpost.postDate
+				FROM tblblogpost, tblconfirmedposts, tbluser
+				WHERE tblblogpost.postID=tblconfirmedposts.postID
+				AND tblblogpost.userID=tbluser.userID
+				AND tbluser.userID=?
+				AND tblconfirmedposts.confirmed=2
+				AND tbluser.position=1
+				ORDER By tblblogpost.postDate DESC LIMIT 2")){
+					mysqli_stmt_bind_param($stmt3, 'i', $uID);
+					
+					mysqli_stmt_execute($stmt3);
+					
+					//get results
+					$result=mysqli_stmt_get_result($stmt3);
+					
+					while($row=mysqli_fetch_array($result))
+					{
+						
+					  $output .= '
+					  <li>
+					  <a href="userAccount.php">
+					  <strong>'.$row["heading"].' has been rejected by admins.</strong><br />
+					   <small><em>'.$row["postDate"].'</em></small>
+					  </a>
+					  </li>
+					  ';
+				   
+					}//end of while loop
+					mysqli_stmt_close($stmt3);
+				}//end of stmt
+				mysqli_close($mysqli);
+				
+				//this query would get the blogpost comment notifications
+				 include('dbConnect.php');
+				if($stmt4=mysqli_prepare($mysqli, 
+				"SELECT tbluser.username, tblblogpost.postID, tblblogpost.heading, tblblogpost.postDate
+				FROM tbluser, tblblogcomments, tblbloggercomments, tblblogpost, tblblogger
+				WHERE tblblogpost.postID=tblblogcomments.postID
+				AND tblblogcomments.commentID=tblbloggercomments.commentID
+				AND tblbloggercomments.userID=tblblogger.userID
+				AND tblblogger.userID=tbluser.userID
+				AND tblblogpost.userID=?
+				ORDER By tblblogpost.postDate DESC LIMIT 5")){
+					mysqli_stmt_bind_param($stmt4, 'i', $uID);
+					
+					mysqli_stmt_execute($stmt4);
+					
+					//get results
+					$result=mysqli_stmt_get_result($stmt4);
+					
+					while($row=mysqli_fetch_array($result))
+					{
+						
+					  $comments .= '
+					  <li>
+					  <a href="viewBlogSingle.php?postID='.$row["postID"].'">
+					  <strong>'.$row["username"].' commented on "'.$row["heading"].'"</strong><br />
+					  <small><em>'.$row["postDate"].'</em></small>
+					  </a>
+					  </li>
+					  ';
+				   
+					}//end of while loop
+					mysqli_stmt_close($stmt4);
+				}//end of stmt
+				mysqli_close($mysqli);
+				
+				//this query would get the message notifications
+				include('dbConnect.php');
+				
+				if($stmt5=mysqli_prepare($mysqli, 
+				"SELECT tbluser.username, tbluser.userID, tblmessage.conversationID, tblmessage.messageDate, tblmessage.messageTitle, tblmessage.originalSender, tblmessage.originalRecipient
+				FROM tbluser, tblmessage
+				WHERE tbluser.userID=tblmessage.sender
+				AND tblmessage.recipient=?
+				ORDER BY tblmessage.messageDate DESC LIMIT 5")){
+					mysqli_stmt_bind_param($stmt5, 'i', $uID);
+					
+					mysqli_stmt_execute($stmt5);
+					
+					//get results
+					$result=mysqli_stmt_get_result($stmt5);
+					
+					while($row=mysqli_fetch_array($result))
+					{
+						
+					  $messages .= '
+					  <li>
+					  <a href="messageReply.php?cID='.$row["conversationID"].'&title='.$row["messageTitle"].'&rID='.$row["userID"].'&oSender='.$row["originalSender"].'&oRecipient='.$row["originalRecipient"].'">
+					  <strong>'.$row["username"].' sent a new message in conversation: '.$row["messageTitle"].'</strong><br />
+					  <small><em>'.$row["messageDate"].'</em></small>
+					  </a>
+					  </li>
+					  ';
+				   
+					}//end of while loop
+					mysqli_stmt_close($stmt5);
+				}//end of stmt
+				mysqli_close($mysqli);
+				
+				//this is to display the count of reports for the admin
+				if($_SESSION['position']==2){
+					//this query would get the message notifications
+					include('dbConnect.php');
+					//get comment report notifications
+					if($stmt=mysqli_prepare($mysqli, 
+					"SELECT COUNT(tblcommentreport.reportID) AS Comment
+					FROM tblcommentreport")){
+						
+						mysqli_stmt_execute($stmt);
+						
+						//get results
+						$result=mysqli_stmt_get_result($stmt);
+						
+						while($row=mysqli_fetch_array($result))
+						{
+							
+						  $commentReport .= '
+						  <li>
+						  <a href="adminReportMenu.php">
+						  <strong>'.$row["Comment"].' new comments have been reported.</strong><br />
+						  </a>
+						  </li>
+						  ';
+					   
+						}//end of while loop
+						mysqli_stmt_close($stmt);
+					}//end of stmt
+					
+					//get message report notifications
+					if($stmt2=mysqli_prepare($mysqli, 
+					"SELECT COUNT(tblmessagereport.reportID) AS Message
+					FROM tblmessagereport")){
+						
+						mysqli_stmt_execute($stmt2);
+						
+						//get results
+						$result=mysqli_stmt_get_result($stmt2);
+						
+						while($row=mysqli_fetch_array($result))
+						{
+							
+						  $messageReport .= '
+						  <li>
+						  <a href="adminReportMenu.php">
+						  <strong>'.$row["Message"].' new messages have been reported.</strong><br />
+						  </a>
+						  </li>
+						  ';
+					   
+						}//end of while loop
+						mysqli_stmt_close($stmt2);
+					}//end of stmt
+				
+				//get blogpost confirmation notifications
+					if($stmt3=mysqli_prepare($mysqli, 
+					"SELECT COUNT(tblconfirmedposts.cPostID) AS posts
+					FROM tblconfirmedposts
+					WHERE tblconfirmedposts.confirmed=0")){
+						
+						mysqli_stmt_execute($stmt3);
+						
+						//get results
+						$result=mysqli_stmt_get_result($stmt3);
+						
+						while($row=mysqli_fetch_array($result))
+						{
+							
+						  $blogpostConfirmations .= '
+						  <li>
+						  <a href="viewUserPosts.php">
+						  <strong>'.$row["posts"].' blogposts have been submitted for confirmation.</strong><br />
+						  </a>
+						  </li>
+						  ';
+					   
+						}//end of while loop
+						mysqli_stmt_close($stmt3);
+					}//end of stmt
+				mysqli_close($mysqli);
+				}//end of if
+			
+			//this handles the display of the notifications to a user.
+			echo 
+				"<article class='entry'>
+				<div class='row'>
+				<h4>Recent Notifications:</h4>
+				<button type='button' class='btn btn-outline-primary form-control sincerely' data-toggle='collapse' 
+				data-target='#notifs'>View Notifications</button>
+				</div>
+				<div id='notifs' class='collapse'>
+					<br/>
+					<h5>Post Notifications</h5>
+					$output
+					<h5>Comments:</h5>
+					$comments
+					<h5>Messages:</h5>
+					$messages
+					";
+					//these are only shown to the admins 
+					if($_SESSION['position']==2){
+						echo"
+						<h5>Blogpost Confirmations</h5>
+						$blogpostConfirmations
+						<h5>Reports:</h5>
+						$commentReport
+						$messageReport
+						";
+					}//end of if
+					
+					echo"
+				</div>
+				<br/>
+				<small>You may need to reload the page to view new notifications.</small>
+				</article>";
+			}//end of isset
+		  
+		  //start of blogpost echoing 
 		  //setting up variables for the blog lists
 		  $postID=0;
 		  $username="";
@@ -206,10 +525,18 @@ session_start();
 		  $imageName="";
 		  $userID=0;
 		  
-			include('dbConnect.php');
-			
-			if($stmt=mysqli_prepare($mysqli, 
-			"SELECT tblblogpost.postID, tbluser.username, tblblogpost.heading, tblblogpost.content, 
+		  //this is for the pagination
+			global $perpage;
+			global $curpage;
+			global $start;
+			global $endpage;
+			global $startpage;
+			global $previouspage;
+			global $nextpage;
+			global $total_recs;
+		  
+		  //this handles the blogpost viewing 
+		  $sql="SELECT tblblogpost.postID, tbluser.username, tblblogpost.heading, tblblogpost.content, 
 			tblblogpost.postDate, tblimages.imageName, tbluser.userID
 			FROM tbluser, tblblogpost, tblconfirmedposts, tblimages
 			WHERE tbluser.userID=tblblogpost.userID 
@@ -217,9 +544,45 @@ session_start();
 			AND tblblogpost.postID=tblimages.postID
 			AND tblconfirmedposts.confirmed=1
 			GROUP BY tblblogpost.postID
-			ORDER BY tblblogpost.postDate DESC")){
-				//execute query
+			ORDER BY tblblogpost.postDate DESC";
+			
+			/*So from here on is the voodoo code for the pagination
+			*/
+			include('dbConnect.php');
+			//this sets the amount of results per page
+			$perpage = 10;
+			
+			//this gets the page # sent by some forms below
+			if(isset($_GET['page']) & !empty($_GET['page'])){
+				$curpage = $_GET['page'];
+			}else{
+				$curpage = 1;
+			}
+			$start = ($curpage * $perpage) - $perpage;
+
+			//do sql query to get the length of the resultset
+			if($stmt=mysqli_prepare($mysqli, $sql)){
 				mysqli_stmt_execute($stmt);
+		
+				/* store result */
+				mysqli_stmt_store_result($stmt);
+				$total_recs = mysqli_stmt_num_rows($stmt);
+			}
+			
+			//this is to set up the actual buttons to click on for the pagination to work
+			$endpage = ceil($total_recs/$perpage);
+					$startpage = 1;
+					$nextpage = $curpage + 1;
+					$previouspage = $curpage - 1;
+			
+			//query to actually show the results
+			//sql2 is an appended version of sql that puts a limit onto the SQL search string so that it only displays results as per the $start and $perpage variables
+			$sql2=$sql." LIMIT $start, $perpage";
+			
+			//this executes the query
+			$stmt=mysqli_prepare($mysqli, $sql2);
+				//execute query
+				if(mysqli_stmt_execute($stmt)){
 				
 				//bind results
 				mysqli_stmt_bind_result($stmt, $postID, $username, $heading, $content, $postDate, $imageName, $userID);
@@ -241,15 +604,27 @@ session_start();
 						</div>";
 						}
 						
-					echo"
-						  <h2 class='entry-title'>
-							 <a href='viewBlogSingle.php?postID=$postID'>$heading</a>
-						  </h2>
-
+					echo"	
+						<h2 class='entry-title'>
+								<a href='viewBlogSingle.php?postID=$postID'>$heading</a>
+							</h2>
+							
 						  <div class='entry-meta'>
-							<ul>
-							  <li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php?userID=$userID&uName=$username'>$username</a></li>
-							  <li class='d-flex align-items-center'><i class='icofont-wall-clock'></i> <a href='blog-single.html'><time datetime='2020-01-01'>$postDate</time></a></li>
+							<ul>";
+							  
+							  	
+						if(isset($_SESSION['uName'])){
+								if($_SESSION['uName']==$username){
+								echo"<li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='userAccount.php'>$username</a></li>";
+							}else{
+								echo"<li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php?userID=$userID&uName=$username'>$username</a></li>";
+							}
+						}else{
+							echo"<li class='d-flex align-items-center'><i class='icofont-user'></i> <a href='viewUserProfile.php?userID=$userID&uName=$username'>$username</a></li>";
+						}
+							  
+							echo"
+							  <li class='d-flex align-items-center'><i class='icofont-wall-clock'></i><time datetime='2020-01-01'>$postDate</time></a></li>
 							</ul>
 						  </div>
 
@@ -264,33 +639,64 @@ session_start();
 					
 					";
 				}//end of fetch
-				
 			mysqli_stmt_close($stmt);
 		}//end of stmt
 		mysqli_close($mysqli);
 		  
 		  ?>
-
-            <div class="blog-pagination">
-              <ul class="justify-content-center">
-                <li class="disabled"><i class="icofont-rounded-left"></i></li>
-                <li><a href="#">1</a></li>
-                <li class="active"><a href="#">2</a></li>
-                <li><a href="#">3</a></li>
-                <li><a href="#"><i class="icofont-rounded-right"></i></a></li>
-              </ul>
-            </div>
+		  
+		  <!--This handles the blog pagination-->
+		  <div class="blog-pagination">
+		<ul class="justify-content-center">
+		  <?php if($curpage != $startpage){ ?>
+			<li class="page-item">
+			  <a href="?page=<?php echo $startpage ?>" tabindex="-1" aria-label="Previous">
+				<span aria-hidden="true">&laquo;</span>
+				<span class="sr-only">First</span>
+			  </a>
+			</li>
+			<?php } ?>
+			<?php if($curpage >= 2){ ?>
+			<li class="page-item"><a href="?page=<?php echo $previouspage ?>"><?php echo $previouspage ?></a></li>
+			<?php } ?>
+			<li class="page-item active"><a href="?page=<?php echo $curpage ?>"><?php echo $curpage ?></a></li>
+			<?php if($curpage != $endpage){ ?>
+			<li class="page-item"><a href="?page=<?php echo $nextpage ?>"><?php echo $nextpage ?></a></li>
+			<li class="page-item">
+			  <a href="?page=<?php echo $endpage ?>" aria-label="Next">
+				<span aria-hidden="true">&raquo;</span>
+				<span class="sr-only">Last</span>
+			  </a>
+			</li>
+			<?php } ?>
+		 </ul>
+		</div>
 
           </div><!-- End blog entries list -->
 
           <div class="col-lg-4">
 
             <div class="sidebar">
-
+			
+			<?php
+			global $feedback;
+			global $count; 
+			
+	         if($feedback != ""){
+		 
+		     echo "<div class= 'alert alert-danger'>"; 
+		       if ($count == 1) echo "<strong>$count error found.</strong>";
+			   if ($count > 1) echo "<strong>$count errors found.</strong>";
+		     echo "$feedback
+			   </div>";
+			}//end of error code
+			?>
+			
+			<!--This handles the search for the home page-->
               <h3 class="sidebar-title">Search</h3>
               <div class="sidebar-item search-form">
-                <form action="">
-                  <input type="text">
+                <form action="index.php" method="post">
+                  <input type="text" name="search">
                   <button type="submit"><i class="icofont-search"></i></button>
                 </form>
 
@@ -370,6 +776,7 @@ session_start();
 
       </div>
     </section><!-- End Blog Section -->
+	
 
   </main><!-- End #main -->
 

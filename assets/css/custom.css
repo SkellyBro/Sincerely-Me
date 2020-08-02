@@ -24,3 +24,12 @@
 	height:50px;
 }
 
+/*This is for the messaging screen so the messages are scrollable.*/
+.scroll{
+	overflow-y: scroll; height:400px; background: #545454; padding-top:10px;
+}
+
+/* mouse over link */
+a:hover {
+  color: #990000;
+}

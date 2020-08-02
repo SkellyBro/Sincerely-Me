@@ -1,5 +1,5 @@
 <?php
-
+	//This page is used to give a list of all the blogposts made by users that have to be confirmed/denied by the administrator.
 	include('adminSessionChecker.php');
 
 ?>
@@ -60,10 +60,11 @@
         <ul>
           <li class="active"><a href="index.php">Home</a></li>
 
-          <li class="drop-down"><a href="#">About</a>
+            <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="team.html">Team</a></li>
+			  <li><a href="services.html">Services</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -77,14 +78,13 @@
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <?php
+            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -95,6 +95,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -132,6 +133,8 @@
           <li><a href="viewUserPosts.php">View All User Posts</a></li>
         </ol>
         <h2>View All User Posts</h2>
+		
+		<h6>Here you can view all of the posts made by users, click on one to see the user's post.</h6>
 
       </div>
 	  
@@ -143,7 +146,7 @@
 	  <!--Content Here :0-->
 	  <div class="container">
 	  
-		<h4>Here you can view all of the posts made by users, click on one to see the user's post.</h4>
+		
 		<br/>
 		<?php
 		//connect to the db and pull stuff out in a list

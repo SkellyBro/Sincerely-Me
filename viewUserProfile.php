@@ -1,5 +1,6 @@
 <?php 
-	
+/*This page is used to show a preview of a user's profile*/
+	session_start();
 	$count=0;
 	$feedback="";
 	
@@ -7,12 +8,13 @@
 	$description="";
 	$picture="";
 	$email="";
+	$position=0;
 	
 	$result[]="";
 	
-	if(isset($_GET)){
+	if(isset($_GET['userID'])){
 		$userID=$_GET['userID'];
-		$uName=$_GET['uName'];
+		$viewedUser=$_GET['uName'];
 	}
 
 ?>
@@ -93,12 +95,13 @@
 
           <li><a href="services.html">Services</a></li>
           <li><a href="contact.html">Contact</a></li>
-          <?php
+             <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -109,6 +112,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -142,9 +146,9 @@
 
         <ol>
           <li><a href="index.php">Home</a></li>
-          <li><a href="viewUserProfile.php"><?php global $uName; echo"$uName's"?> Profile</a></li>
+          <li><a href="viewUserProfile.php"><?php global $uName; echo"$viewedUser's"?> Profile</a></li>
         </ol>
-        <h2><?php global $uName; echo"$uName's"?> Profile</h2>
+        <h2><?php global $uName; echo"$viewedUser's"?> Profile</h2>
 
       </div>
 	  
@@ -158,9 +162,9 @@
 	  global $userID;
 	  
 	    require("dbConnect.php");
-		  
+		  //get the user information from the database
 		  if($stmt=mysqli_prepare($mysqli, 
-		  "SELECT tbluser.description, tbluser.pictureID, tbluser.email FROM tbluser WHERE userID=?")){
+		  "SELECT tbluser.description, tbluser.pictureID, tbluser.email, tbluser.position FROM tbluser WHERE userID=?")){
 				  //bind entered parameters to mysqli object
 				mysqli_stmt_bind_param($stmt, "i", $userID);
 				
@@ -168,13 +172,19 @@
 				mysqli_stmt_execute($stmt);
 				
 				//get results of query
-				mysqli_stmt_bind_result($stmt, $description, $picture, $email);
+				mysqli_stmt_bind_result($stmt, $description, $picture, $email, $position);
 						
 					if(mysqli_stmt_fetch($stmt)){
 							/*Echo user profile information*/
 							echo"<div class='row'>";
+							
+							
 								//username
-								echo"<div class='col-lg-6'> <h4>Username:</h4> <h5>$uName</h5>";
+								echo"<div class='col-lg-6'> <h4>Username:</h4> <h5>$viewedUser</h5>";
+								
+								if($position==2){
+									echo"<div><strong class='error'>This user is an administrator.</strong></div>";
+								}
 								
 								//Contact
 								echo"<br/><h4>Contact Information:</h4>";
@@ -200,6 +210,7 @@
 									echo"<h5>This user has not set a description.</h5>";
 								}
 								echo"</div>";
+								
 							echo"</div>";
 					}else{
 						echo"<h6 class='error'>Database error encountered. Please contact an administrator for assistance.</h6>";
@@ -209,6 +220,68 @@
 			}//end of stmt
 			//close connection
 			mysqli_close($mysqli);
+			//this is a link that would allow a user to start a conversation with a user from their profile
+			echo"<a href='createMessage.php?user=$viewedUser'><button class='btn btn-outline-primary sincerely col-sm-12'>Message this User</button></a>";
+			
+			echo"<br/>";
+			echo"<br/>";
+			//initalize all variables
+				$postID=0;
+				$content="";
+				$heading="";
+				$postDate="";
+				$status="";
+				$reason="";
+				
+				include('dbConnect.php');
+				
+				//this query is to get all of the user's blogposts and display them.
+				if($stmt=mysqli_prepare($mysqli, 
+				"SELECT tblblogpost.postID, tblblogpost.content, tblblogpost.heading, tblblogpost.postDate, tblconfirmedposts.confirmed, tblconfirmedposts.reason
+				FROM tblblogpost, tblconfirmedposts
+				WHERE tblblogpost.postID=tblconfirmedposts.postID
+				AND tblblogpost.userID=?")){
+					//bind parameters
+					mysqli_stmt_bind_param($stmt, 'i', $userID);
+					
+					//execute query
+					mysqli_stmt_execute($stmt);
+					
+					//bind results
+					mysqli_stmt_bind_result($stmt, $postID, $content, $heading, $postDate, $status, $reason);
+					
+					//create table head
+					echo"
+					
+					<table class='table-hover table'>
+					<thead>
+						<tr>
+							<th><h5>Heading</h5></th>
+							<th><h5>Body</h5></th>
+							<th><h5>Date/Time</h5></th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+					";
+					
+					//fetch and display results
+					while (mysqli_stmt_fetch($stmt)){
+						
+						if($status==1){
+							echo"
+							<tr>	
+							<td>$heading</td>
+							<td>$content</td>
+							<td>$postDate</td>
+							<td><a href='viewBlogSingle.php?postID=$postID'>View Post</a></td>
+							</tr>";
+						}
+					}//end of while
+					echo"</tbody></table>";		
+					mysqli_stmt_close($stmt);
+				}//end of stmt
+				mysqli_close($mysqli);
 	  ?>
 	  </div>
 	  

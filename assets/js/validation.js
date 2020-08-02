@@ -17,7 +17,7 @@ function valReg(frm){
 		errorCount++;
 	}else if (!/^[a-z0-9]+$/i.test(uName)){
 		//display error
-		document.getElementById("user_err").innerHTML="Your username cannot have special characters.";
+		document.getElementById("user_err").innerHTML="Your username cannot have special characters or spaces.";
 		errorCount++;
 	}else if(uName.length<4){
 		//display error
@@ -58,7 +58,7 @@ function valReg(frm){
 		return false;
 	}
 }
-
+/*This helps with login validation*/
 function valLog(frm){
 	var passed=true;
 	var errorCount=0;
@@ -92,7 +92,7 @@ function valLog(frm){
 		return false;
 	}
 }
-
+/*This function helps with blog validation*/
 function valBlog(frm){
 	var passed=true;
 	var errorCount=0;
@@ -118,6 +118,7 @@ function valBlog(frm){
 	}
 }//end of valBlog
 
+/*This function validates the email for the user account edit*/
 function valEmail(frm){
 	var passed=true;
 	var errorCount=0;
@@ -137,7 +138,37 @@ function valEmail(frm){
 	}
 }//end of valEmail
 
+//admin deletion of user confirmation
+function blogConfirmation(){
+	var x = confirm("Are you sure you want to delete this blogpost?");
+	if (x){
+      return true;
+	}else{
+	  return false;
+	}
+}//end of confirmation
 
+//admin deletion of user confirmation
+function adminConfirmation(){
+	var x = confirm("Are you sure you want to delete this user's account?");
+	if (x){
+      return true;
+	}else{
+	  return false;
+	}
+}//end of confirmation
+
+//admin deletion of user comment confirmation
+function commentConfirmation(){
+	var x = confirm("Are you sure you want to delete this user's comment?");
+	if (x){
+      return true;
+	}else{
+	  return false;
+	}
+}//end of confirmation
+
+/*User delete account confirmation*/
 function confirmation(){
 	var x = confirm("Are you sure you want to delete your account?");
 	if (x){
@@ -145,5 +176,48 @@ function confirmation(){
 	}else{
 	  return false;
 	}
+}//end of confirmation
+
+/*Confirmation for the image delete with the edit post page*/
+function imageDelete(){
+	var x = confirm("Are you sure you want to delete these images?");
+	if (x){
+      return true;
+	}else{
+	  return false;
+	}
 
 }//end of delCon
+/*This function is used to validate the post confirmation page where a user can select a reason to deny a post.*/
+function valReason(frm){
+	var passed=true;
+	var errorCount=0;
+	var r= frm.reason.value;
+	
+	if(r=="" || r==null){
+		errorCount++;
+		document.getElementById("reason_err").innerHTML="You must select a reason to deny the post.";
+	}
+	
+		if(errorCount !=0)
+	{
+		return false;
+	}
+}
+
+/*This function is used to validate the post confirmation page where a user can select a reason to deny a post.*/
+function valReport(frm){
+	var passed=true;
+	var errorCount=0;
+	var r= frm.reason.value;
+	
+	if(r=="" || r==null){
+		errorCount++;
+		document.getElementById("reason_err").innerHTML="You must select a reason to report this user.";
+	}
+	
+		if(errorCount !=0)
+	{
+		return false;
+	}
+}

@@ -1,5 +1,8 @@
 <?php
+/*this page is used to allow a user to edit their profile details*/
 	namespace DBlackborough\Quill;
+	
+	//session checker
 	session_start();
 	if($_SESSION['uName']==""){
 		
@@ -12,13 +15,34 @@
 	$count=0; 
 	$feedback="";
 	$success="";
+	$email="";
+	$description="";
+	$picture="";
 	
 	
-	
-	//get userID from session
+	//get userID from session and pull the user's data from the database to populate fields
 	if(isset($_SESSION['uID'])){
 		$uID= $_SESSION['uID'];
-	}
+		
+		//get database connection
+		include('dbConnect.php');
+		  if($stmt=mysqli_prepare($mysqli, "SELECT tbluser.description, tbluser.pictureID, tbluser.email FROM tbluser WHERE userID=?")){
+				  //bind entered parameters to mysqli object
+				mysqli_stmt_bind_param($stmt, "i", $uID);
+				
+				//execute the stmt
+				mysqli_stmt_execute($stmt);
+				
+				//get results of query
+				mysqli_stmt_bind_result($stmt, $description, $picture, $email);
+						
+				mysqli_stmt_fetch($stmt);
+		
+		mysqli_stmt_close($stmt);
+		}//end of stmt
+		mysqli_close($mysqli);
+	}//end of isset
+	
 	
 	//this isset handles the email insert into the database
 	if(isset($_POST['email'])){
@@ -35,28 +59,35 @@
 		}else if(!preg_match('/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/',$email)){
 			$count++;
 			$feedback.="<br/> Your email must be in the format xyz@xyz.com";
-		}//end of email validation
+		}else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+		  $count++;
+		  $feedback.="<br/> $email is not a valid email address.";
+		}
 		
 		//sanitize 
 		sanitize($email);
 		
-		//insert email
-		//make connection to database
-		include('dbConnect.php');
 		
-		if($stmt=mysqli_prepare($mysqli,"UPDATE tbluser SET tbluser.email=? WHERE tbluser.userID=?")){
-			//bind parameters
-			mysqli_stmt_bind_param($stmt, "si", $email, $uID);
+		if($count==0){		
+			//insert email
+			//make connection to database
+			include('dbConnect.php');
 			
-			//execute
-			if(mysqli_stmt_execute($stmt)){
-				$success.="<br/> Email successfully updated!";
-			}else{
-				$count++;
-				$feedback.="<br/> Email could not be updated, an error occured, please contact a technician for assistance.";
-			}
-		}//end of if-stmt
-		
+			if($stmt=mysqli_prepare($mysqli,"UPDATE tbluser SET tbluser.email=? WHERE tbluser.userID=?")){
+				//bind parameters
+				mysqli_stmt_bind_param($stmt, "si", $email, $uID);
+				
+				//execute
+				if(mysqli_stmt_execute($stmt)){
+					$success.="Email successfully updated! You may need to reload this page to see the effects take place.";
+				}else{
+					$count++;
+					$feedback.="<br/> Email could not be updated, an error occured, please contact a technician for assistance.";
+				}
+			mysqli_stmt_close($stmt);
+			}//end of stmt
+			mysqli_close($mysqli);
+		}//end of count
 	}//end of isset
 	
 	//this isset handles the description insert into the database
@@ -65,10 +96,21 @@
 		$quill_json=$_POST['quill_json'];
 		
 		//validate code so it fits the format
-		validate($quill_json);
+		if($quill_json=="" || $quill_json==null){
+			$count++;
+			$feedback.="<br/> Your post cannot be empty.";
+		}else if(strlen($quill_json)>2000){
+			$count++;
+			$feedback.="<br/> Your post cannot be more than 2000 characters.";
+		}else if($quill_json=='{"ops":[{"insert":"\n"}]}'){
+			$count++;
+			$feedback.="<br/> Your new description cannot be empty.";
+		}	
 		
 		//santize data so there are no scary things in it
-		sanitize($quill_json);
+		//sanitize($quill_json);
+		
+		escapeString($quill_json);
 		
 		//this is a check done to ensure that there are no errors, if there are errors then the render/insert won't run
 		if($count==0){
@@ -90,8 +132,10 @@
 	}//end of isset
 	
 	if(isset($_POST['upload'])){
-		//validate photos
+		//set variable to store pictureID
+		$pictureID="";
 		
+		//validate photos
 		if(($_FILES['fileUpload']['name'])!=null || ($_FILES['fileUpload']['name'])!=""){
 			//code adapted from:https://www.w3schools.com/php/php_file_upload.asp
 			//accessed on: 26/03/2019
@@ -109,6 +153,37 @@
 		}
 		
 		if($count==0){
+			/*
+			//unlink any old file if it exists
+			require('DBConnect.php');
+			//this won't run on a live server since most hosting platforms disable certain PHP functions
+			if($stmt=mysqli_prepare($mysqli, 
+			"SELECT tbluser.pictureID FROM tbluser WHERE tbluser.userID=?")){
+				//bind params
+				mysqli_stmt_bind_param($stmt, 'i', $uID);
+				
+				//execute
+				mysqli_stmt_execute($stmt);
+				
+				//bind results
+				mysqli_stmt_bind_result($stmt, $pictureID);
+				
+				if(mysqli_stmt_fetch($stmt)){
+					if($pictureID!=null){
+						/*This code isn't mine
+					Code Author: Sandhya Nair
+					Code Accessed On: 3/06/2020
+					Code Available At: https://stackoverflow.com/questions/43021477/php-unlink-no-such-file-or-directory
+					
+					 $base_dir = realpath($_SERVER["DOCUMENT_ROOT"]);
+					 $file_delete =  "$base_dir/Sincerely/accountAvatar/$pictureID";
+					 if (file_exists($file_delete)) {unlink($file_delete);}
+					}
+				mysqli_stmt_close($stmt);
+				}//end of stmt
+			mysqli_close($mysqli);
+			}
+			*/
 			
 			//create random number for the file upload
 			$rand=rand(1,1000);
@@ -142,15 +217,11 @@
 
 
 			$fileName= $rand.$_FILES['fileUpload']['name'];
-
-			
-
-			require('DBConnect.php');
-
 			
 
 			//store filename in database
-
+			include('dbConnect.php');
+			
 			if ($stmt = mysqli_prepare($mysqli,
 
 				"UPDATE tbluser SET tbluser.pictureID=? WHERE tbluser.userID=?")){
@@ -165,9 +236,7 @@
 
 				if(mysqli_stmt_execute($stmt)){
 
-					$success.= "<br/>Avatar updated Successfully!";
-
-				
+					$success.= "Avatar updated Successfully! You may need to reload this page to see the effects take place.";
 
 				}else{
 
@@ -176,10 +245,13 @@
 					$count++;
 
 				}//end of feedback if else 
-			}
+				mysqli_stmt_close($stmt);
+			}//end of stmt
+		mysqli_close($mysqli);
 		}
 	}//end of upload isset
 	
+	//this handles an insert of the user's description
 	function insert($r, $uID){
 		global $count;
 		global $feedback;
@@ -196,7 +268,7 @@
 			
 			//execute statement and see if successful
 			if(mysqli_stmt_execute($stmt)){
-				$success.="<br/> Description Updated!";
+				$success.="Description Updated! You may need to reload this page to see the effects take place.";
 				return true;
 			}else{
 				$feedback.="<br/> Description Update Unsuccessful. Please contact an administrator for assistance!";
@@ -207,25 +279,6 @@
 		mysqli_close($mysqli);
 		
 	}//end of insert
-	
-	/*function to validate the entered user data 
-	*$mT is the user's entered text with the markup tags
-	*/
-	function validate($d){
-		global $count;
-		global $feedback; 
-		
-		if($d=="" || $d==null){
-			$count++;
-			$feedback.="<br/> Your post cannot be empty.";
-		}
-		
-		if(strlen($d)>2000){
-			$count++;
-			$feedback.="<br/> Your post cannot be more than 2000 characters.";
-		}
-		
-	}//end of validation
 	
 	/*function to escape any special characters from entered user data
 	*$val is the variable being escaped
@@ -314,10 +367,12 @@
         <ul>
           <li class="active"><a href="index.php">Home</a></li>
 
-          <li class="drop-down"><a href="#">About</a>
+           <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="team.html">Team</a></li>
+			  <li><a href="services.html">Services</a></li>
+			  <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -331,14 +386,13 @@
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <?php
+            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -349,6 +403,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -420,25 +475,18 @@
 
 		?>
 		
-		<form class="class-horizontal" action="editDescription.php" method="post" onsubmit="return valEmail(this)">
+		<form class="class-horizontal" action="editDescription.php" method="post" onSubmit="return valEmail(this)">
 		
 			<div class="form-group">
 				<label class="control-label col-sm-3"><h4>Contact Email:</h4></label>
-				<?php
-				if(isset($_GET['email'])){
-				  $email = $_GET['email']; //some_value
-				  echo "<div class='col-sm-10'><h5>Current Email:</h5><p>$email</p></div>";
-				}
-				
-				?>
 				<div class="col-sm-10">
-				<input type="text" class="form-control" name="uEmail" id="uEmail" aria-labelledby="email"/> 
+				<input type="text" class="form-control" name="uEmail" id="uEmail" aria-labelledby="email" value="<?php global $email; echo $email;?>"/> 
 			 </div>
 			 <span class="error" id="email_err"></span>
 			</div>
 		
 			<div class="col-sm-10">
-				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="email" value="Submit" onClick="return valEmail();"/>
+				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="email" value="Submit"/>
 			</div>
 		</form>
 	  
@@ -448,15 +496,7 @@
 		<form id="target" class="class-horizontal" action="editDescription.php" method="post">
 		
 			<div class="form-group">
-				<label class="control-label col-sm-3"><h4>Edit Description:</h4></label>
-				
-				<?php
-				if(isset($_GET['description'])){
-				  $description = $_GET['description']; //some_value
-				  echo "<div class='col-sm-10'><h5>Current Description: </h5> $description</div>";
-				}
-				
-				?>
+				<label class="control-label col-sm-3"><h4>Edit Description: <br/>(2000 character limit)</h4></label>
 				
 				<div class="col-sm-10">
 					<div id="editor">
@@ -467,7 +507,7 @@
 				</div>
 			</div>
 			<div class="col-sm-10">
-				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="description" value="Submit"/>
+				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="description" value="Submit" onClick="return valEmail();"/>
 			</div>
 		
 		</form>
@@ -478,9 +518,20 @@
 			<div class="form-group"> 
 				<label class="control-label col-sm-4"><h4>Upload New Avatar:</h4></label>
 				<div class="col-sm-10">
-					Please be responsible with the image you upload. If your image is deemed inappropriate whereby it is related to: pornography, 
-					substance abuse, general abuse, or harmful in any way, the administrators would address this.
+					<p>Please be responsible with the image you upload. If your image is deemed inappropriate whereby it is related to: pornography, 
+					substance abuse, general abuse, or harmful in any way, the administrators would address this.</p>
 				</div>
+				<br/>
+				<?php
+				global $picture;
+					echo"<div class='container'>";
+						if($picture!=null ||$picture!="" ){
+							echo"<h5>Current Avatar:</h5>";
+							echo"<img src='accountAvatar/$picture' style='width:300px; height:200px;'/>";
+						}
+					echo"</div>";
+				
+				?>
 				<br/>
 			 <div class="col-sm-10">
 				<!--Code Adapted from:http://www.javascripthive.info/php/php-multiple-files-upload-validation/-->
@@ -501,8 +552,18 @@
 		</div>
 	  </div>
 	  
+	  <?php
+
+		global $description;
+		$description= strip_tags($description);
+	  
+	  ?>
+	  
 	  <!-- Initialize Quill editor -->
 		<script>
+		
+		var x = "<?php echo"$description"?>"; 
+		
 		//These are the options for the toolbar
 			var toolbarOptions = [
 			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
@@ -523,12 +584,25 @@
 			  },
 			  theme: 'snow'
 			});	
+			//this sets the user's description into the quill.js textarea
+			quill.setText(x);
 			
 		  //this gets the data from the rich text area
 		  $('#target').submit(function() {
 			$('#quill_json').val(JSON.stringify(quill.getContents()));
 			return true;
 		});
+		
+		//This is some neat little code to prevent a form resubmission if you reload the page
+		/*
+		Code Author: dtbaker
+		Code Accessed On:23/06/2020
+		Code Source: https://stackoverflow.com/questions/6320113/how-to-prevent-form-resubmission-when-page-is-refreshed-f5-ctrlr
+		
+		*/
+		  if ( window.history.replaceState ) {
+				window.history.replaceState( null, null, window.location.href );
+			}
 		  
 		</script>
 	  

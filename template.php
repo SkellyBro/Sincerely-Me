@@ -55,9 +55,11 @@
           <li class="active"><a href="index.php">Home</a></li>
 
           <li class="drop-down"><a href="#">About</a>
-            <ul>
+           <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="team.html">Team</a></li>
+			  <li><a href="services.html">Services</a></li>
+			  <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -70,15 +72,14 @@
               </li>
             </ul>
           </li>
-
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <?php
+		  
+            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -89,6 +90,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						

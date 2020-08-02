@@ -1,12 +1,22 @@
 <?php	
+	/*This page handles the blogpost creation functionality of the application.*/
+	//set Quill.js functions
 	namespace DBlackborough\Quill;
+	
+	//This is for PHPMailer
+	use PHPMailer\PHPMailer\PHPMailer;
+	use PHPMailer\PHPMailer\SMTP;
+	use PHPMailer\PHPMailer\Exception;
+
+	
+	//custom session checker to ensure that user is logged in, as both bloggers and admins can make use of the same page
 	session_start();
 	if($_SESSION['uName']==""){
 		
 		Header("Location:login.php?feedback=You must be logged in to access this page...");
 		
 	}
-	
+	//load stuff for the Quill rendering & PHPMailer
 	require_once 'vendor/autoload.php';
 
 	
@@ -49,21 +59,23 @@
 		//create new array to store data
 		$tags= array();
 		//for each element in $raw, trim the whitespace off the element and cram it into the $tags array
-		foreach($raw as $tag){$tags[]= trim($tag);}
-
+		foreach($raw as $tag){
+			trim($tag);
+			/*This little bit of code isn't mine.
+			Code Author: alvin alexander
+			Code Accessed On: 24/06/2020
+			Code Source: https://alvinalexander.com/php/php-string-strip-characters-whitespace-numbers/
+			*/
+			$tag = preg_replace("/[^a-zA-Z]/", "", $tag);
+			$tags[]=$tag;
+			
+		}//end of foreach
+		
 		//validate code so it fits the format
 		validate($quill_json, $title, $tags);
 		
 		//santize data so there are no scary things in it
 		sanitize($quill_json, $title);
-		
-		
-		//check images for count
-		if(count($_FILES['fileUpload']['name'])>2){
-			$feedback.="<br/>You can only attach two images";
-			$count++;
-			
-		}
 		
 		//this is a check done to ensure that there are no errors, if there are errors then the render/insert won't run
 		/*
@@ -97,11 +109,34 @@
 			//insert into confirmation table
 			insertConfirmation();
 			
+			if($_SESSION['position']==1){
+				sendEmail($result, $title);
+			}
+			
 			if($blogInsert){
 				if($tagInsert && $imageInsert && $confirmInsert){
-					$success.="<br/>Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!<br/> Please be advised that your post will need to be verified by an administrator before it is made public, this may take some time.";
+					if($_SESSION['position']==1){
+							global $postID;
+						$success.="Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!
+						<br/> Please be advised that your post will need to be verified by an administrator before it is made public, this may take some time.";
+						header("Location:confirmBlog.php?postID=".$postID);
+					}else{
+							global $postID;
+						$success.="Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!";
+						header('Location:confirmBlog.php?postID='.$postID);
+					}
+
 				}else if($tagInsert && $confirmInsert){
-					$success.="<br/>Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!<br/> Please be advised that your post will need to be verified by an administrator before it is made public, this may take some time.";
+					if($_SESSION['position']==1){
+							global $postID;
+						$success.="Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!
+						<br/> Please be advised that your post will need to be verified by an administrator before it is made public, this may take some time.";
+						header('Location:confirmBlog.php?postID='.$postID);
+					}else{
+							global $postID;
+						$success.="Blogpost made successfully, all content has been saved! All of your posts can be seen on your account!";
+						header('Location:confirmBlog.php?postID='.$postID);
+					}
 				}
 			}
 		}//end of count
@@ -146,6 +181,7 @@
 		mysqli_close($mysqli);
 	}//end of function getID
 	
+	/*This function is used to insert a record into tblcomfirmedposts. This record will be used for the confirmation functionality of the application*/
 	function insertConfirmation(){
 		global $postID;
 		global $count;
@@ -203,6 +239,7 @@
 		}
 	}//end of insertConfirmation
 	
+	/*This function handles the insertion of the image names into the database and into the correct file on the server.*/
 	function insertImage(){
 		global $feedback;
 		global $count;
@@ -223,6 +260,7 @@
 				//create random number for inserting the images
 				$rand=rand(1,1000);
 				
+				//this is some minor file type validation
 				if((($_FILES['fileUpload']['type'][$i] == 'image/jpg')||
 				($_FILES['fileUpload']['type'][$i] == 'image/jpeg')||
 				($_FILES['fileUpload']['type'][$i] == 'image/pjpeg')||
@@ -260,6 +298,9 @@
 			mysqli_stmt_close($stmt);
 			mysqli_close($mysqli);
 		}else{
+			/*to simplify some querying with the system, a null record will be inserted into tblimage if the blogpost has no images
+			this is done to keep track of what blogposts have images and what blogposts have no images
+			*/
 			$imageName=null;
 			//store filename in database
 				if ($stmt = mysqli_prepare($mysqli,
@@ -279,14 +320,18 @@
 						$count++;
 					}//end of feedback if else 
 					
-				}//end mysqli prepare statement
+					mysqli_stmt_close($stmt);
+				}//end of stmt
+			mysqli_close($mysqli);
 		}//end of else
 		
 		if($dbSuccess){
 			$imageInsert=true;
 		}
 	}//end of insertImage
-	
+	/*This function handles the insert of blogpost tags into the database
+	*$tags is an array of the tags the user has included for their blogpost
+	*/
 	function insertTags($tags){
 		global $feedback;
 		global $count; 
@@ -300,8 +345,12 @@
 		//include database connection
 		include('dbConnect.php');
 		
-		//create insert statement and loop through it 
-		foreach($tags as $tag){
+		//lowercase all tags to standardize them in the system
+		$loweredTags= array_map('strtolower', $tags);
+		
+		//loop through insert statement, inserting tags into the database
+		foreach($loweredTags as $tag){
+			//insert tag
 			if($stmt=mysqli_prepare($mysqli, "INSERT INTO tbltags(postID, tagName) VALUES(?,?)")){
 				//Bind parameters to SQL Statement Object
 				mysqli_stmt_bind_param($stmt, "is", $postID, $tag);
@@ -340,6 +389,106 @@
 		return $t;
 	}//end of sanitize
 	
+	/*This function is used to send the administrators and email if a user creates a blogpost to be confirmed*/
+	function sendEmail($post, $title){
+		global $feedback;
+		global $count;
+		global $success;
+		$blogpostConfirmations="";
+		
+		//get the user's username
+		if(isset($_SESSION['uName'])){
+			$uName=$_SESSION['uName'];
+		}
+		
+		//create new date object to inform the user when the blogpost was made.
+		$date=date('Y-m-d H:i:s');
+		
+		//include database connection
+		include('dbConnect.php');
+		//get count of blogposts that need to be confirmed to put into the body of the email
+		if($stmt3=mysqli_prepare($mysqli, 
+			"SELECT COUNT(tblconfirmedposts.cPostID) AS posts
+			FROM tblconfirmedposts
+			WHERE tblconfirmedposts.confirmed=0")){
+				
+				mysqli_stmt_execute($stmt3);
+				
+				//get results
+				$result=mysqli_stmt_get_result($stmt3);
+				
+				while($row=mysqli_fetch_array($result))
+				{
+					
+				  $blogpostConfirmations .= '
+				 
+				  <strong>'.$row["posts"].' other blogposts have been submitted for confirmation, you can view them here --put link for page here--</strong><br />
+				 
+				  ';
+			   
+				}//end of while loop
+				mysqli_stmt_close($stmt3);
+			}//end of stmt
+		mysqli_close($mysqli);
+		
+		//this is for phpmailer
+		$mail = new PHPMailer(true);
+		
+		/*fam look, this code works as is and IT ONLY WORKS WITH GMAIL. 
+		If you need to edit it, look up the documentation for PHPMailer first, they have a github here: 
+		https://github.com/PHPMailer/PHPMailer
+		
+		btw this goes without saying, but the code below ain't mine.
+		*/
+		try{
+			//server settings
+			$mail->isSMTP();
+			$mail->SMTPOptions = array(
+			'ssl' => array(
+			'verify_peer' => false,
+			'verify_peer_name' => false,
+			'allow_self_signed' => true
+			)
+			);
+			//$mail->SMTPDebug = SMTP::DEBUG_SERVER;
+			$mail->Host = 'smtp.gmail.com';
+			$mail->Port = '587';
+			$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+			$mail->SMTPAuth = true;
+			$mail->Username='ewsdgroup2018@gmail.com';//this is the sending email
+			$mail->Password= 'EWSD2018';//well, password is the password for the gmail account
+			$mail->SetFrom('no-reply@Sincerely.com');
+			$mail->AddAddress('rys19@live.com');
+			//content
+			$mail->isHTML();
+			$mail->Subject='Blogpost Confirmation Required';
+			$mail->Body= 'Hello jimmy2, 
+				Please be advised that a new blogpost has been submitted for confirmation by user: '.$uName.':
+				<br/>
+				<b>Title:</b> ' .$title.
+				'<br/> 
+				<b>Blogpost Body:</b> '.$post.
+				'</br>
+				<b>Date Sent:</b> ' .$date.
+				'<br/>
+				
+				<p>'.$blogpostConfirmations.'</p><br/>
+				--Put link to view post here--
+				
+				Kind Regards, <br/>
+				Email Bot (PHPMailer)';
+			
+			//recipient
+			
+			
+			$mail->Send();
+			$success.='Message sent!';
+		} catch (Exception $e) {
+			$count++;
+			$feedback.= "<br/>Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+		}
+	}//end of sendEmail
+	
 	/*function to escape any special characters from entered user data
 	*$val is the variable being escaped
 	*/
@@ -369,6 +518,9 @@
 		}else if($quill=='{"ops":[{"insert":"\n"}]}'){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
+		}else if(strlen($quill)>10000){
+			$count++;
+			$feedback.="<br/> Your post cannot be more than 10,000 characters.";
 		}	
 		
 		if($t=="" || $t==null){
@@ -377,8 +529,10 @@
 		}else if(strlen($t)>100){
 			$count++;
 			$feedback.="<br/> Your title cannot be more than 100 characters.";
+		}else if (!preg_match("/\\w|\\s+/", $t)){
+			$count++;
+			$feedback.="<br/> Your title can only contain alphanumeric characters.";
 		}
-		
 		//file validation
 		
 		if(count($_FILES['fileUpload']['name'])>2){
@@ -386,7 +540,9 @@
 			$count++;
 		}
 		
-		if(count($_FILES['fileUpload']['name'])==2){
+		$emptyImages=array_filter($_FILES['fileUpload']);
+		
+		if(!empty($emptyImages) && $_FILES['fileUpload']['name'][0]!=""){
 			//code adapted from:https://www.w3schools.com/php/php_file_upload.asp
 			//accessed on: 26/03/2019
 			$allowed =  array('jpeg', 'png', 'jpg', 'bmp', 'pjpeg', 'JPEG', 'PNG', 'JPG', 'BMP', 'PJPEG');
@@ -438,7 +594,12 @@
 		
 	}//end of validation
 	
-	function insert($mT, $t, $uID){
+	/*This function (despite its crap name) is used to make the insert into the tblblogpost table, storing the majority of content relating to a blogpost
+	*$content refers to the blogpost body
+	*$heading refers to the title of the blogpost
+	*$uID is the userID of the user who created the blogpost
+	*/
+	function insert($content, $heading, $uID){
 		global $count;
 		global $feedback; 
 		global $success; 
@@ -455,7 +616,7 @@
 		if($stmt=mysqli_prepare($mysqli, 
 		"INSERT INTO tblBlogPost(content, heading, postDate, userID) VALUES (?, ?, ?, ?)")){
 			//bind parameters to SQL Object
-			mysqli_stmt_bind_param($stmt,"sssi", $mT, $t, $date, $uID);
+			mysqli_stmt_bind_param($stmt,"sssi", $content, $heading, $date, $uID);
 			
 			//execute statement and see if successful
 			if(mysqli_stmt_execute($stmt)){
@@ -532,13 +693,15 @@
       </div>
 
       <nav class="nav-menu d-none d-lg-block">
-        <ul>
+         <ul>
           <li class="active"><a href="index.php">Home</a></li>
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="team.html">Team</a></li>
+			  <li><a href="services.html">Services</a></li>
+			  <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -552,14 +715,13 @@
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-           <?php
+            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
 				$uName=$_SESSION['uName'];
 				echo"
 					<li><a href='createBlog.php'>Create Blogpost</a></li>
+					<li><a href='messaging.php'>Messaging</a></li>
 					<li><a href='userAccount.php'>$uName's Account</a></li>
 					<li><a href='logout.php'>Logout</a></li>
 					
@@ -570,6 +732,7 @@
 					echo"
 						<li><a href='createBlog.php'>Create Blogpost</a></li>
 						<li><a href='adminPanel.php'>Administrator Panel</a></li>
+						<li><a href='messaging.php'>Messaging</a></li>
 						<li><a href='userAccount.php'>$uName's Account</a></li>
 						<li><a href='logout.php'>Logout</a></li>
 						
@@ -605,7 +768,7 @@
           <li><a href="createBlog.php">Create Blog</a></li>
         </ol>
         <h2>Create Blogpost</h2>
-
+		 <h6>You can create your own blogpost here! Be as descriptive as you would like, this is a safe place for you to tell it as it is.</h6>
       </div>
 	  
     </section><!-- End Breadcrumbs -->
@@ -637,9 +800,6 @@
 
 		?>
 	  
-	  
-	  <h6>You can create your own blogpost here! Be as descriptive as you would like, this is a safe place for you to tell it as it is.</h6>
-	  <br/>
 	  <!--Content Here :0-->
 	  <form id="target" class="form-horizontal" action="createBlog.php" method="post" onSubmit="return valBlog(this)" enctype="multipart/form-data">
 	  
@@ -676,7 +836,7 @@
 			<div class="form-group"> 
 				<label class="control-label col-sm-2"><h4>Blog Tags:</h4></label>
 				<div class="col-sm-10">You can tag your blog however you like, please separate tags with a comma and only
-				choose tags relevant to your post! (Max tags: 5)</div>
+				choose tags relevant to your post! <br/> For example: <strong>personal, vent, anxiety, stress, frustrated etc.</strong> <br/> (Max tags: 5)</div>
 				 <div class="col-sm-10">
 
 					<input type="text" class="form-control" name="tags" id="tags" aria-labelledby="blog tags"/> 
@@ -685,7 +845,7 @@
 			</div>
 			
 			<div class="col-sm-10">
-				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="submit" value="Submit" onClick="return valBlog();"/>
+				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="submit" value="Submit & View Preview" onClick="return valBlog();"/>
 			</div>
 		</form>
 	  </div>

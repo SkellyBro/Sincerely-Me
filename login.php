@@ -1,4 +1,5 @@
 <?php
+	/*This page handles the login for the site*/
 	if(isset($_POST['submit'])){
 		$uName= $_POST['uName'];
 		$pass= $_POST['pass'];
@@ -26,7 +27,7 @@
 					$_SESSION['uID']=$uID;
 					$_SESSION['position']=$position;
 					echo $_SESSION['uID'];
-					Header("Location:index.php");
+					header("Location:index.php");
 				}else if($position==2){
 					//do session start here
 					session_start();
@@ -34,7 +35,7 @@
 					$_SESSION['uID']=$uID;
 					$_SESSION['position']=$position;
 					echo $_SESSION['uID'];
-					Header("Location:index.php");
+					header("Location:index.php");
 				}//end of if
 			}//end of authentication-if
 		}//end of if
@@ -210,7 +211,9 @@
           <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
+              <li><a href="team.html">Team</a></li> 
+			  <li><a href="services.html">Services</a></li>
+              <li><a href="contact.html">Contact</a></li>
 
               <li class="drop-down"><a href="#">Drop Down 2</a>
                 <ul>
@@ -224,8 +227,7 @@
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
+         
           <li><a href="login.php">Login</a></li>
           <li><a href="registration.php">Register</a></li>
 
@@ -278,6 +280,28 @@
 				 echo "$success
 				   </div>";
 			}//end of if statement for error
+			
+			if(isset($_GET['feedback'])){
+				$feedback=$_GET['feedback'];
+				$success=$_GET['success'];
+				$count=$_GET['count'];
+				
+				 if($feedback != ""){
+		 
+				 echo "<div class= 'alert alert-danger'>"; 
+				   if ($count == 1) echo "<strong>$count error found.</strong>";
+				   if ($count > 1) echo "<strong>$count errors found.</strong>";
+				 echo "$feedback
+				   </div>";
+				}//end of error code
+				
+				//this is feedback code for success messages
+				if($success != ""){
+					 echo "<div class= 'alert alert-success'>"; 
+					 echo "$success
+					   </div>";
+				}//end of if statement for error
+			}
 
 		?>
 	  
