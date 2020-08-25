@@ -1,7 +1,7 @@
 <?php
 	//This page is used to give a list of all the blogposts made by users that have to be confirmed/denied by the administrator.
 	include('adminSessionChecker.php');
-
+  ob_start();
 ?>
 
 <!DOCTYPE html>
@@ -62,19 +62,8 @@
 
             <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -218,27 +207,24 @@
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+         <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

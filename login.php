@@ -1,4 +1,5 @@
 <?php
+ob_start();
 	/*This page handles the login for the site*/
 	if(isset($_POST['submit'])){
 		$uName= $_POST['uName'];
@@ -114,9 +115,7 @@
 		if($uN=="" || $uN==null){
 			$count++;
 			$feedback.="<br/>You must enter a username to login!";
-		}
-		
-		if(!preg_match("/^[\w]+$/", $uN)){
+		}else if(!preg_match("/^[\w]+$/", $uN)){
 			$count++;
 			$feedback.="<br/>Your username cannot contain special characters.";
 		}//end of username validation
@@ -125,9 +124,7 @@
 		if($p=="" || $p==null){
 			$count++;
 			$feedback.="<br/>You must enter a password.";
-		}
-		
-		if(strlen($p)<8){
+		}else if(strlen($p)<8){
 			$count++;
 			$feedback.="<br/>Your password cannot be less than 8 characters.";
 		}
@@ -210,20 +207,8 @@
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li> 
-			  <li><a href="services.html">Services</a></li>
-              <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -283,8 +268,6 @@
 			
 			if(isset($_GET['feedback'])){
 				$feedback=$_GET['feedback'];
-				$success=$_GET['success'];
-				$count=$_GET['count'];
 				
 				 if($feedback != ""){
 		 
@@ -331,8 +314,10 @@
 			</div>
 		</form>
 		<br/>
-		<br/>
-	  <p>If you have any problems logging in please contact an administrator <a href="contact.html">Here!<a/></p>
+		<br/> 
+		<a href="fpassword.php">Forgot Password?</a>
+	 	<p>If you have any problems logging in please contact an administrator <a href="contact.php">Here!<a/></p>
+	 
 	  
 	  </div>
 	  
@@ -347,27 +332,24 @@
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+         <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="contact.html">Login</a></li>
-          <li><a href="contact.html">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

@@ -1,7 +1,7 @@
 <?php
+ob_start();
 	/*This page has all the content for the administrator panel*/
-	//These calls are to ensure that the Quill.js text editor function properly.
-	namespace DBlackborough\Quill;
+
 	//call to session checker to ensure that the user is an admin
 	include('adminSessionChecker.php');
 	require_once 'vendor/autoload.php';
@@ -18,41 +18,23 @@
 	
 	//This isset is used to capture the administrator's daily, public message
 	if(isset($_POST['submit'])){
-		$quill_json=$_POST['quill_json'];
-		
+		$body=$_POST['body'];
 		//create new date object for the insert into the database
 		$date=date('Y-m-d H:i:s');
 		
 		//validate post data
-		if($quill_json=="" || $quill_json==null){
+		if($body=="" || $body==null){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
-		}else if(strlen($quill_json)<20){
+		}else if(strlen($body)<2){
 			$count++;
-			$feedback.="<br/> Your post cannot be less than 20 characters.";
-		}else if($quill_json=='{"ops":[{"insert":"\n"}]}'){
+			$feedback.="<br/> Your post cannot be less than 2 characters.";
+		}else if($body=='{"ops":[{"insert":"\n"}]}'){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
 		}		
 		
 		if($count==0){
-			
-			//magic code that renders the quill delta into readable text
-			try {
-				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
-				$result = $quill->render();
-			} catch (\Exception $e) {
-				echo $e->getMessage();
-			}
-
-			//revalidate post data
-			if($result=="" || $result==null){
-				$count++;
-				$feedback.="<br/> Your post cannot be empty.";
-			}else if(strlen($result)<20){
-				$count++;
-				$feedback.="<br/> Your post cannot be less than 20 characters.";
-			}	
 
 			//include database connections
 			include('dbConnect.php');
@@ -61,7 +43,7 @@
 			//$result= filter_var($result, FILTER_SANITIZE_STRING); 
 			
 			//sanitize data going into MySQL
-			$result= mysqli_real_escape_string($mysqli, $result);
+			$body= mysqli_real_escape_string($mysqli, $body);
 			
 			//if there are no errors then do the insert	
 			if($count==0){	
@@ -70,12 +52,12 @@
 				if($stmt=mysqli_prepare($mysqli,
 				"INSERT INTO tblpmessage(pMessage, pMessageDate, userID) VALUES(?, ?, ?)")){
 					//bind all the parameters
-					mysqli_stmt_bind_param($stmt, "ssi", $result, $date, $uID);
+					mysqli_stmt_bind_param($stmt, "ssi", $body, $date, $uID);
 					
 					//execute query
 					if(mysqli_stmt_execute($stmt)){
 						//successful insert
-						$success.="<br/> The daily post has been made and is now accessible on the homepage";
+						$success.="The daily post has been made and is now accessible on the homepage";
 					}else{
 						//unsuccessful insert
 						$count++;
@@ -120,12 +102,8 @@
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/custom.css" rel="stylesheet">
   
-   <!--Quill Link-->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-   <link rel="stylesheet" type="text/css" href="node_module/quill-emoji/dist/quill-emoji.css">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-  <script type="text/javascript" src="node_modules/quill-emoji/dist/quill-emoji.js"></script>
+   <!--ckeditor Link-->
+   <script src="ckeditor/ckeditor.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -153,22 +131,10 @@
          <ul>
           <li class="active"><a href="index.php">Home</a></li>
 
-          <li class="drop-down"><a href="#">About</a>
+           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -275,10 +241,9 @@
 			
 			<div class="form-group">
 				<div class="col-sm-12">
-					<div id="editor">
-					</div>
-					<!--This is needed to store the information that the user enters into the rich text area.-->
-					<input type="hidden" id="quill_json" name="quill_json" aria-labelledby="blog writing area"/>
+					<small>You can use emotes when you're making your post, click on the right, next to the omega (Ω) symbol.</small>
+					<!--This is needed for the rich text area-->
+					<textarea id="editor" name="body"></textarea>
 				</div>
 			</div>
 			
@@ -293,31 +258,8 @@
 		<!-- Initialize Quill editor -->
 		<script>
 		//These are the options for the toolbar
-			var toolbarOptions = [
-			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-
-			  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript                
-
-			  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-			  ['clean']                                         // remove formatting button
-			];
 		
-			//this creates the actual rich text area
-			var quill = new Quill('#editor', {
-			  modules: {
-				toolbar: toolbarOptions
-			  },
-			  theme: 'snow'
-			});	
-			
-		  //this gets the data from the rich text area
-		  $('#target').submit(function() {
-			$('#quill_json').val(JSON.stringify(quill.getContents()));
-			return true;
-		});
+		CKEDITOR.replace( 'editor' );
 		
 		//This is some neat little code to prevent a form resubmission if you reload the page
 		/*
@@ -372,27 +314,24 @@
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+         <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

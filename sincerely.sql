@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 11, 2020 at 04:31 PM
+-- Generation Time: Aug 18, 2020 at 06:47 PM
 -- Server version: 10.4.13-MariaDB
 -- PHP Version: 7.4.7
 
@@ -57,24 +57,8 @@ CREATE TABLE `tblblogcomments` (
 --
 
 INSERT INTO `tblblogcomments` (`commentID`, `content`, `postDate`, `postID`) VALUES
-(1, 'Test comment 1', '2020-05-26 23:45:53', 29),
-(2, 'Test Comment 2', '2020-05-26 23:47:35', 29),
-(3, 'testComment', '2020-06-02 23:14:29', 39),
-(5, '<strong>Hello! How</strong><em>are</em><u>you?</p></u>', '2020-06-02 23:49:05', 30),
-(6, '<strong>HELLO!</strong><p> Its <em>very good</em> to <u>hear from you!</p></u>', '2020-06-02 23:52:31', 30),
-(7, '<p>This is a test to ensure that everything is working fine.</p>', '2020-06-02 23:58:00', 30),
-(8, '<strong>this </strong><em>is </em><u>a </u><s>test</p></s>', '2020-06-02 23:58:27', 30),
-(10, '<p>Firefox Comment</p>', '2020-06-03 15:42:04', 47),
-(11, '<p>Test comment</p>', '2020-06-23 21:31:52', 63),
-(12, '<p>test comment 2</p>', '2020-06-23 21:36:59', 63),
-(13, '<p>thank you for commenting!</p>', '2020-06-23 21:53:06', 63),
-(14, '<p>hello!</p>', '2020-06-23 21:54:02', 63),
-(15, '<p>test comment</p>', '2020-07-07 23:26:43', 63),
-(16, '<p>hello, how are you</p>', '2020-07-07 23:27:08', 63),
-(17, '<p>another test</p>', '2020-07-07 23:32:18', 63),
-(18, '<p>test to maintain user position</p>', '2020-07-11 15:28:22', 63),
-(20, '<p>here is another test</p>', '2020-07-11 15:30:08', 63),
-(21, '<p>heyo</p>', '2020-07-11 16:03:18', 63);
+(63, '<strong>this is a nice post. </p></strong>', '2020-07-31 03:54:07', 92),
+(64, '<p>this is a bad comment</p>', '2020-07-31 03:59:56', 92);
 
 -- --------------------------------------------------------
 
@@ -94,9 +78,7 @@ CREATE TABLE `tblblogger` (
 INSERT INTO `tblblogger` (`userID`, `bloggerID`) VALUES
 (7, 209),
 (8, 6947),
-(9, 8705),
-(10, 6937),
-(11, 3689);
+(10, 6937);
 
 -- --------------------------------------------------------
 
@@ -116,23 +98,8 @@ CREATE TABLE `tblbloggercomments` (
 --
 
 INSERT INTO `tblbloggercomments` (`blogCommentID`, `userID`, `commentID`, `userPosition`) VALUES
-(1, 9, 1, 2),
-(2, 9, 2, 2),
-(3, 9, 3, 2),
-(5, 9, 5, 2),
-(6, 9, 6, 2),
-(7, 9, 7, 2),
-(8, 9, 8, 2),
-(10, 7, 10, 1),
-(11, 9, 11, 2),
-(12, 9, 12, 2),
-(13, 7, 13, 1),
-(14, 7, 14, 1),
-(16, 7, 16, 1),
-(17, 7, 17, 1),
-(18, 7, 18, 1),
-(19, 7, 20, 1),
-(20, 11, 21, 1);
+(68, 9, 63, 2),
+(69, 7, 64, 1);
 
 -- --------------------------------------------------------
 
@@ -142,48 +109,29 @@ INSERT INTO `tblbloggercomments` (`blogCommentID`, `userID`, `commentID`, `userP
 
 CREATE TABLE `tblblogpost` (
   `postID` int(5) NOT NULL,
-  `content` varchar(10000) NOT NULL,
-  `heading` varchar(100) NOT NULL,
+  `content` text CHARACTER SET utf8mb4 DEFAULT NULL,
+  `heading` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `postDate` datetime NOT NULL,
   `userID` int(5) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tblblogpost`
 --
 
 INSERT INTO `tblblogpost` (`postID`, `content`, `heading`, `postDate`, `userID`) VALUES
-(17, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sed pellentesque sem, id molestie neque. Curabitur vehicula neque quis cursus tincidunt. Mauris non neque vehicula, egestas lacus vel, porttitor neque. Vestibulum faucibus nunc in dignissim condimentum. Mauris faucibus vehicula odio. Nunc molestie consequat odio, nec viverra leo euismod et. Etiam vel odio vulputate, suscipit ex ut, bibendum diam 03423094-</p>', 'Title 360', '2020-05-19 00:00:00', 7),
-(20, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam ut gravida sem. Donec elementum facilisis euismod. Duis ac dictum leo. Duis ornare enim vel arcu convallis semper. Etiam in laoreet neque. Nullam dignissim augue eget nunc porttitor faucibus. Cras sit amet neque ante. Integer eu risus ligula. </p>', 'Admin Blog Test', '2020-05-21 00:00:00', 9),
-(21, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam ut gravida sem. Donec elementum facilisis euismod. Duis ac dictum leo. Duis ornare enim vel arcu convallis semper. Etiam in laoreet neque. Nullam dignissim augue eget nunc porttitor faucibus. Cras sit amet neque ante. Integer eu risus ligula. 123</p>', 'Test Title 128', '2020-05-21 00:00:00', 7),
-(22, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam ut gravida sem. Donec elementum facilisis euismod. Duis ac dictum leo. Duis ornare enim vel arcu convallis semper. Etiam in laoreet neque. Nullam dignissim augue eget nunc porttitor faucibus. Cras sit amet neque ante. Integer eu risus ligula. </p>', 'Test Title 630', '2020-05-22 00:00:00', 7),
 (25, '<p>I wanted to create a safe space to express how you feel without revealing who you are. 		The ultimate bloggers dream to ventilate every thought, feeling, and behaviour, without the fear of anyone knowing your identity. 		A group journal, where others can be inspired by your narrative as you relieve all that’s pent up. 		This is a judgement and abuse free place. We only encourage supportive networking. 		If you’re interested in booking a therapeutic counselling session, check out our website <a href=\"https://theracoconsultants.com/\">here</a>. 		<br/><br/> -Antonia Mootoo</p>', 'Twilight Of The Thunder God', '2020-05-25 22:40:50', 9),
 (26, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan</p>', 'Twilight Of The Thunder God', '2020-05-25 23:18:20', 9),
 (28, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consectetur, lacus nec dictum porttitor, ex libero feugiat mi, ac ullamcorper nibh sem ut turpis. Sed dignissim ligula ut imperdiet accumsan</p>', 'No Image Test', '2020-05-25 23:58:29', 9),
-(29, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi tincidunt tincidunt enim eget posuere. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Cras ut neque quam. Quisque cursus condimentum libero, quis dignissim leo consectetur eu.</p>', 'Null Image', '2020-05-26 00:17:53', 9),
-(30, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer cursus purus nulla, et egestas est luctus vel. Vestibulum tempor ipsum vel ipsum malesuada, eu viverra velit dictum. Vivamus luctus est nec tellus condimentum, vel tristique dui egestas. Nam ut suscipit dolor, eu malesuada sem. Integer sit amet ultricies quam. In rhoncus quam tortor, et volutpat arcu elementum ac. Maecenas eget justo rhoncus, dapibus dui id, mattis arcu.</p>', 'Title 130', '2020-06-02 01:24:37', 7),
-(31, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut. Donec malesuada lorem sed purus facilisis, id fringilla quam iaculis. Mauris convallis elit nec varius blandit. Nulla pharetra pellentesque magna. Duis non nunc feugiat, egestas dolor non, dapibus nunc. Nullam neque velit, luctus et lobortis sed, aliquam sit amet massa. Suspendisse blandit nisi vel nulla sodales vehicula. Sed facilisis iaculis enim sed semper.</p>', 'Tag Test Heading', '2020-06-02 01:36:05', 7),
-(34, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut. Donec malesuada lorem sed purus facilisis, id fringilla quam iaculis. Mauris convallis elit nec varius blandit. Nulla pharetra pellentesque magna. Duis non nunc feugiat, egestas1231</p>', 'Let Me Live / Let Me Die', '2020-06-02 02:03:03', 7),
-(35, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tristique lectus ligula, vel vulputate dui blandit sit amet. Mauris ullamcorper mi leo, vel facilisis libero tempor ut.09qw1</p>', 'Test Blog for Reasons', '2020-06-02 02:53:30', 7),
-(37, '<strong>This is a test to ensure that the formatting does not break anything on the home page.</strong><em>It really shouldn\'t break anything, but I\'m a little concerned.</p></em>', 'Edit Test', '2020-06-02 03:17:05', 9),
-(38, '<p>This is a blogpost made to test that the SQL query on the homepage only displays posts that have been accepted by the admins of the site, therefore this post should not be seen. </p>', 'Unaccepted Post', '2020-06-02 20:46:53', 7),
-(39, '<p>This is a blogpost made to test that the SQL query on the homepage only displays posts that have been accepted by the admins of the site, this post should be seen. </p>', 'Accepted Post', '2020-06-02 20:54:09', 7),
-(40, '<p>This is a blog post used to test the image upload of the blog creation function. This should work.</p>', 'Image Test', '2020-06-02 21:13:17', 7),
-(41, '<p>This is a blogpost used to test the image upload of the blog creation function. Only a single image will be uploaded. </p>', 'Single Image Test', '2020-06-02 21:18:02', 7),
-(43, '<p>This is a blogpost made with no images, this is done to test to ensure that blogposts with no images can be made without issues. </p>', 'No Image Test', '2020-06-02 21:31:05', 7),
-(45, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas elementum neque eget sapien maximus ultrices. Etiam pharetra massa ut tristique faucibus. Donec nunc arcu, euismod dictum lectus at, cursus laoreet ipsum. Nulla facilisi. Curabitur imperdiet, lorem eget mollis elementum, quam nisl congue ligula, eget porta enim dui vel massa13131231</p>', 'Final Test', '2020-06-02 22:26:28', 7),
 (46, '<p>This is a test to ensure that the administrators can make blogposts without any issues. The posts should be available on the homepage without the admin posts needing to be confirmed. </p>', 'Admin Blog Test', '2020-06-03 14:43:14', 9),
 (47, '<p>This is another test to ensure that admins can make blogposts with images attached, I\'m trying to write a bunch so I could make up the word limit on this thing. </p>', 'Admin Blog Image Test', '2020-06-03 14:57:21', 9),
-(48, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pellentesque scelerisque justo, a aliquet risus fermentum at. Suspendisse eu lectus eros. Duis fermentum neque et nibh ornare vehicula. Fusce et scelerisque orci. Cras eros tortor, tincidunt a enim et, accumsan volutpat nisi. Sed dictum, tortor sit amet imperdiet volutpat, odio nulla blandit magna, at dictum massa justo at leo. Sed nec turpis odio.</p>', 'Firefox Blogpost', '2020-06-03 15:42:43', 7),
-(49, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ultrices velit vel leo tempor tincidunt. Nulla facilisi. Suspendisse semper libero vitae lobortis rutrum. Mauris eleifend fermentum dictum. Praesent consequat augue vel feugiat elementum. Suspendisse malesuada risus odio, id lacinia ligula volutpat eu. </p>', 'Test Title', '2020-06-09 21:20:43', 7),
-(59, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ultrices velit vel leo tempor tincidunt. Nulla facilisi. Suspendisse semper libero vitae lobortis rutrum. Mauris eleifend fermentum dictum. Praesent consequat augue vel feugiat elementum. Suspendisse malesuada risus odio, id lacinia ligula volutpat eu. 12312</p>', 'Preview Test 1', '2020-06-09 21:40:15', 7),
-(60, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ultrices velit vel leo tempor tincidunt. Nulla facilisi. Suspendisse semper libero vitae lobortis rutrum. Mauris eleifend fermentum dictum. Praesent consequat augue vel feugiat elementum. Suspendisse malesuada risus odio, id lacinia ligula volutpat eu. 546</p>', 'preview post 1', '2020-06-09 21:44:56', 7),
-(61, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ultrices velit vel leo tempor tincidunt. Nulla facilisi. Suspendisse semper libero vitae lobortis rutrum. Mauris eleifend fermentum dictum. Praesent consequat augue vel feugiat elementum. Suspendisse malesuada risus odio, id lacinia ligula volutpat eu. 5655</p>', 'prewview', '2020-06-09 21:48:36', 7),
-(62, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla in tempus tellus, at porta risus. Sed varius urna ligula, sed bibendum lorem vehicula ac. Sed dignissim nulla quis maximus tempor. Praesent eleifend, enim vitae varius pulvinar, dui ligula finibus felis, a rutrum turpis enim id tortor12321321</p>', 'Preview Test 6', '2020-06-10 20:18:39', 7),
 (63, '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla in tempus tellus, at porta risus. Sed varius urna ligula, sed bibendum lorem vehicula ac. Sed dignissim nulla quis maximus tempor. Praesent eleifend, enim vitae varius pulvinar, dui ligula finibus felis, a rutrum turpis enim id tortor31232112</p>', 'Used to the Darkness', '2020-06-10 20:29:49', 7),
-(64, '<strong>Lorem ipsum dolor sit ame</strong><p>t, consectetur adipiscing elit. Nulla viverra auctor nunc non tempus. Integer eleifend non risus id euismod. Sed arcu libero, iaculi<u>s sit amet eleifend in, congue a mauris. Vestibulum imperdiet facilisis nulla sit amet sagittis. Aliquam egestas vel leo nec consequat.qweqweqwewq</p></u>', 'Test Title', '2020-06-11 01:14:50', 7),
-(65, '<p>Pellentesque nec turpis libero. Pellentesque efficitur, ipsum non egestas porttitor, urna enim blandit dui, non interdum augue ligula cursus massa. Vestibulum id leo metus.12345</p>', 'No image blogpost  preview', '2020-06-23 22:47:14', 7),
-(66, '<p>Pellentesque nec turpis libero. Pellentesque efficitur, ipsum non egestas porttitor, urna enim blandit dui, non interdum augue ligula cursus massa. Vestibulum id leo metus.7890</p>', 'Blogpost Preview with Image', '2020-06-23 22:53:07', 7);
+(91, '<p>hello, how are you?&nbsp;&nbsp;Quisque quis gravida justo. Sed maximus eleifend felis sed pulvinar. Donec massa tellus, tempus non facilisis vitae, mattis sagittis erat. Mauris pretium urna metus, in interdum enim pretium nec.</p>\\r\\n', 'Test Title', '2020-07-30 19:33:30', 7),
+(92, '<p>this is a test body, because reasons. I cant think of anything to write in this box. </p>', 'sup bro', '2020-07-31 03:50:28', 7),
+(93, '<p>Duis blandit ipsum et libero porttitor viverra. Sed eget justo feugiat, semper quam quis, tristique nulla. Pellentesque ultricies orci dui, a rhoncus erat lacinia et. Fusce malesuada lacinia odio a pellentesque. Aenean quis massa lobortis, euismod massa non, sollicitudin felis. Nulla nec nibh id nunc egestas varius non sed erat. Integer metus lectus, egestas ullamcorper felis sed, vehicula ultricies libero. Fusce semper sapien et placerat dapibus.lmao</p>', 'This is an email test', '2020-07-31 22:27:57', 7),
+(97, '<p>Nulla vulputate sodales felis id consequat. Sed velit ligula, aliquet ut vulputate luctus, accumsan ut erat. Duis hendrerit, quam sed consectetur dapibus, eros turpis sollicitudin elit, vitae ullamcorper ligula libero eget sem. Sed dignissim eros et euismod hendrerit. Phasellus sed massa nisl.</p>', 'Email Test', '2020-07-31 22:43:40', 7),
+(98, '<p>I hate the fact that I have to sit down and write more than 100 words just to prevent people from fucking spamming the system, but honestly its not bad because in a regular use-case this is fine.&nbsp;</p>\r\n', 'New post with new editor', '2020-08-07 21:20:01', 9),
+(99, '<p>Man, it is so weird that I have to sit down and write out this 100 words thing, I wonder how much words emotes take up, maybe a single character.&nbsp;👄</p>\r\n', 'Lets try this again with emotes', '2020-08-07 21:22:26', 9);
 
 -- --------------------------------------------------------
 
@@ -197,6 +145,7 @@ CREATE TABLE `tblcommentreport` (
   `reason` varchar(100) NOT NULL,
   `reportedUser` int(5) NOT NULL,
   `reportedBy` varchar(100) DEFAULT NULL,
+  `reportedByID` int(5) NOT NULL,
   `reportDate` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -204,10 +153,9 @@ CREATE TABLE `tblcommentreport` (
 -- Dumping data for table `tblcommentreport`
 --
 
-INSERT INTO `tblcommentreport` (`reportID`, `commentID`, `reason`, `reportedUser`, `reportedBy`, `reportDate`) VALUES
-(3, 11, 'Harassment', 9, 'jimmy', '2020-07-09 21:59:24'),
-(13, 12, 'Spam', 9, 'jimmy', '2020-07-11 04:45:35'),
-(14, 13, 'Spam', 7, 'bill', '2020-07-11 15:30:49');
+INSERT INTO `tblcommentreport` (`reportID`, `commentID`, `reason`, `reportedUser`, `reportedBy`, `reportedByID`, `reportDate`) VALUES
+(47, 64, 'Spam', 7, 'jimmy2', 9, '2020-07-31 04:00:17'),
+(48, 64, 'Spam', 7, 'jimmy2', 9, '2020-08-05 00:40:19');
 
 -- --------------------------------------------------------
 
@@ -228,37 +176,16 @@ CREATE TABLE `tblconfirmedposts` (
 --
 
 INSERT INTO `tblconfirmedposts` (`cPostID`, `postID`, `userID`, `confirmed`, `reason`) VALUES
-(1, 17, 9, 1, NULL),
-(2, 20, 9, 1, NULL),
-(3, 21, 9, 2, NULL),
-(4, 22, 9, 2, 'Spam'),
 (7, 25, 9, 1, NULL),
 (8, 26, 9, 1, NULL),
-(11, 29, 9, 1, NULL),
-(12, 30, 9, 0, NULL),
-(13, 31, 9, 2, 'Violence'),
-(14, 31, 9, 2, 'Violence'),
-(16, 34, NULL, 0, NULL),
-(17, 35, NULL, 0, NULL),
-(19, 37, 9, 1, NULL),
-(20, 38, 9, 2, 'Violence'),
-(21, 39, 9, 1, NULL),
-(22, 40, NULL, 0, NULL),
-(23, 41, NULL, 0, NULL),
-(25, 43, NULL, 0, NULL),
-(27, 45, NULL, 0, NULL),
 (28, 46, 9, 1, NULL),
 (29, 47, 9, 1, NULL),
-(30, 48, NULL, 0, NULL),
-(31, 49, NULL, 0, NULL),
-(41, 59, NULL, 0, NULL),
-(42, 60, NULL, 0, NULL),
-(43, 61, NULL, 0, NULL),
-(44, 62, 9, 2, 'Spam'),
-(45, 63, 9, 1, NULL),
-(46, 64, 9, 2, 'Violence'),
-(47, 65, NULL, 0, NULL),
-(48, 66, NULL, 0, NULL);
+(74, 91, 9, 0, 'Spam'),
+(75, 92, 9, 1, NULL),
+(76, 93, NULL, 0, NULL),
+(80, 97, NULL, 0, NULL),
+(81, 98, 9, 1, NULL),
+(82, 99, 9, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -277,43 +204,19 @@ CREATE TABLE `tblimages` (
 --
 
 INSERT INTO `tblimages` (`imageID`, `imageName`, `postID`) VALUES
-(30, '638zennyfresh.jpg', 20),
-(31, '22415937040_560813030788324_6633396955100558967_o.jpg', 21),
-(32, '78alena-aenami-001-1.jpg', 22),
-(33, '80alena-aenami-005.jpg', 22),
 (36, NULL, 25),
 (37, '5181QbXpzl.jpg', 26),
 (38, '872776_deus_ex.jpg', 26),
-(41, NULL, 29),
-(44, NULL, 31),
-(47, NULL, 34),
-(48, '944alena-aenami-001-1.jpg', 35),
-(49, '84alena-aenami-005.jpg', 35),
-(51, NULL, 37),
-(52, NULL, 38),
-(53, NULL, 39),
-(54, '78936791532_1613964488731288_3557870866995871744_n.jpg', 40),
-(55, '293alena-aenami-million-little-pieces-1k.jpg', 40),
-(56, '363babyboy.jpg', 41),
-(60, '880fuscia.png', 45),
-(61, '569lightblue.jpg', 45),
 (62, NULL, 46),
 (63, '583alena-aenami-million-little-pieces-1k.jpg', 47),
 (64, '102alena-aenami-rooflinesgirl-1k-2.jpg', 47),
-(65, '5602776_deus_ex.jpg', 48),
-(66, '314486_deus_ex.jpg', 48),
-(67, '76815937040_560813030788324_6633396955100558967_o.jpg', 49),
-(68, '2311428436079-deus-ex-mankind-divided-concept-art-2.jpg', 49),
-(81, NULL, 59),
-(82, NULL, 60),
-(83, NULL, 61),
-(84, NULL, 62),
-(85, NULL, 63),
-(86, NULL, 64),
-(107, NULL, 43),
-(108, NULL, 65),
-(109, '696qaca0mps8v351.jpg', 66),
-(111, '583alena-aenami-lunar-cover.jpg', 30);
+(146, NULL, 91),
+(147, '803alena-aenami-witcher-1k.jpg', 92),
+(148, '531alena-aenami-eternity-1080px.jpg', 92),
+(149, NULL, 93),
+(153, NULL, 97),
+(154, NULL, 98),
+(155, NULL, 99);
 
 -- --------------------------------------------------------
 
@@ -329,40 +232,26 @@ CREATE TABLE `tblmessage` (
   `sender` int(5) NOT NULL,
   `recipient` int(5) NOT NULL,
   `messageDate` datetime NOT NULL,
-  `messageTitle` varchar(200) NOT NULL,
-  `messageContent` varchar(2500) NOT NULL,
+  `messageTitle` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `messageContent` text CHARACTER SET utf8mb4 DEFAULT NULL,
   `userPosition` int(5) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tblmessage`
 --
 
 INSERT INTO `tblmessage` (`messageID`, `conversationID`, `originalSender`, `originalRecipient`, `sender`, `recipient`, `messageDate`, `messageTitle`, `messageContent`, `userPosition`) VALUES
-(1, 0, 9, 7, 9, 7, '2020-07-01 00:00:00', 'Test Title', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc commodo auctor risus vulputate convallis. Phasellus cursus porttitor sapien a finibus. Vivamus interdum vulputate ipsum, sed ullamcorper justo scelerisque non. Sed lobortis justo a pharetra ornare. Proin faucibus, augue sit amet facilisis scelerisque</p>', 2),
-(2, 477, 7, 9, 7, 9, '2020-07-01 00:00:00', 'Test Title', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam non quam interdum, aliquet nibh ut, consectetur lorem. In venenatis tempus tortor, nec volutpat nisl maximus a. </p>', 1),
-(4, 0, 9, 7, 7, 9, '2020-07-01 22:42:25', 'Test Title', '<p>This is a proper reply from the app itself.</p>', 1),
-(5, 0, 9, 7, 7, 9, '2020-07-01 22:42:52', 'Test Title', '<p>This is to check if the message screen scrolls properly.</p>', 1),
-(6, 0, 9, 7, 7, 9, '2020-07-01 22:49:27', 'Test Title', '<p>greetings!!!</p>', 1),
-(7, 477, 7, 9, 7, 9, '2020-07-01 23:14:06', 'Test Title', '<p>hello</p>', 1),
-(8, 296, 7, 11, 7, 11, '2020-07-01 23:58:20', 'Test For Bill', '<p>Quisque dignissim non neque fermentum laoreet. Aliquam egestas nulla quam, ac vulputate libero bibendum in. Mauris pulvinar tincidunt dolor, non posuere ligula. Maecenas non lacus efficitur, efficitur ex non, porttitor est. Donec condimentum nec turpis sed ultrices. Integer tincidunt metus nisi, </p>', 1),
-(9, 477, 7, 9, 7, 9, '2020-07-01 23:59:46', 'Test Title', '<p>Does this work?</p>', 1),
-(10, 0, 9, 7, 7, 9, '2020-07-02 00:05:55', 'Test Title', '<p>This is a test</p>', 1),
-(11, 0, 9, 7, 9, 7, '2020-07-02 00:06:35', 'Test Title', '<p>tthis is a test on jimmy2\\\'s account</p>', 2),
-(12, 477, 7, 9, 9, 7, '2020-07-02 00:19:02', 'Test Title', '<p>I have received your message!</p>', 2),
-(13, 0, 9, 7, 9, 7, '2020-07-02 00:19:30', 'Test Title', '<p>this is another test sent off jimmy2\\\'s account</p>', 2),
-(14, 122, 9, 11, 9, 11, '2020-07-02 00:21:07', 'This is another test for Bill', '<p>Hello Bill! How are you? How is your wife and children doing? I hope you\\\'re well and that you\\\'re doing well when it comes to handling those issues we talked about prior. Don\\\'t worry, you\\\'ll be okay!</p>', 2),
-(20, 172, 7, 9, 7, 9, '2020-07-06 00:08:21', 'Email Test', '<p>Pellentesque vitae tellus elementum, ullamcorper dui at, placerat ex. Quisque sagittis nibh tristique libero bibendum, vel elementum felis consectetur. Aenean tincidunt sollicitudin ex, id convallis orci posuere quis. Integer porttitor erat ut risus suscipit, in rutrum mi dignissim. Donec dignissim,</p>', 1),
-(21, 572, 7, 9, 7, 9, '2020-07-06 00:51:40', 'Email Test', '<strong>Pellentesque vitae tellus elementum, ullamcorper dui at, placerat ex. Quisque sagittis nibh tristique libero bibendum, vel elementum felis consectetur. Aenean tincidunt sollicitudin ex, id convallis orci posuere quis. Integer porttitor erat ut risus suscipit, in rutrum mi dignissim. Donec dignissim,</p></strong>', 1),
-(22, 572, 7, 9, 7, 9, '2020-07-06 21:04:37', 'Email Test', '<p>Lets hope you get this email too, buddy. </p>', 1),
-(23, 572, 7, 9, 9, 7, '2020-07-06 21:05:44', 'Email Test', '<p>I got the email, don\\\'t worry!</p>', 2),
-(24, 572, 7, 9, 7, 9, '2020-07-06 21:14:50', 'Email Test', '<p>just checking to ensure that the title works as intended.</p>', 1),
-(25, 296, 7, 11, 11, 7, '2020-07-09 13:52:53', 'Test For Bill', '<p>this is a message</p>', 1),
-(26, 296, 7, 11, 7, 11, '2020-07-09 14:21:50', 'Test For Bill', '<p>hello</p>', 2),
-(27, 296, 7, 11, 11, 7, '2020-07-09 14:22:28', 'Test For Bill', '<p>what is happening</p>', 1),
-(29, 296, 7, 11, 11, 7, '2020-07-09 14:25:36', 'Test For Bill', '<p>hi</p>', 1),
-(30, 183, 11, 7, 11, 7, '2020-07-11 16:06:39', 'user position test', '<p>hey bro, how are you?</p>', 1),
-(31, 122, 9, 11, 11, 9, '2020-07-11 16:19:45', 'This is another test for Bill', '<p>test to make sure this still works</p>', 1);
+(32, 57, 9, 7, 9, 7, '2020-07-13 02:11:40', 'Message!', '<p>Hey how are ya :p</p>', 2),
+(33, 57, 9, 7, 7, 9, '2020-07-13 02:12:11', 'Message!', '<p>I\\\'m good! How are you?</p>', 1),
+(43, 91, 7, 9, 7, 9, '2020-07-24 14:39:11', 'Email Test 2', '<p>This is a test to see if the email functionality works as intended. </p>', 1),
+(45, 91, 7, 9, 7, 9, '2020-07-30 19:45:07', 'Email Test 2', '<p>hey how are u</p>', 1),
+(46, 91, 7, 9, 7, 9, '2020-07-31 03:56:29', 'Email Test 2', '<p>whats up</p>', 1),
+(47, 682, 9, 7, 9, 7, '2020-08-07 21:57:27', 'this is a new message with the new editor', '<p>👸💋</p>\\r\\n', 2),
+(48, 682, 9, 7, 9, 7, '2020-08-07 22:56:46', 'this is a new message with the new editor', '<p>👄</p>\r\n', 2),
+(49, 682, 9, 7, 9, 7, '2020-08-07 22:57:54', 'this is a new message with the new editor', '<p>👃👅</p>\\r\\n', 2),
+(50, 682, 9, 7, 7, 9, '2020-08-08 04:08:17', 'this is a new message with the new editor', '<p>👄</p>\\r\\n', 1),
+(51, 91, 7, 9, 7, 9, '2020-08-17 19:37:36', 'Email Test 2', '<p>hey hey</p>\\r\\n', 1);
 
 -- --------------------------------------------------------
 
@@ -376,6 +265,7 @@ CREATE TABLE `tblmessagereport` (
   `reason` varchar(100) NOT NULL,
   `reportedUser` int(5) NOT NULL,
   `reportedBy` varchar(100) NOT NULL,
+  `reportedByID` int(5) NOT NULL,
   `reportDate` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -383,9 +273,9 @@ CREATE TABLE `tblmessagereport` (
 -- Dumping data for table `tblmessagereport`
 --
 
-INSERT INTO `tblmessagereport` (`reportID`, `messageID`, `reason`, `reportedUser`, `reportedBy`, `reportDate`) VALUES
-(4, 26, 'Spam', 7, 'bill', '2020-07-09 22:03:44'),
-(10, 4, 'Harassment', 11, 'jimmy2', '2020-07-11 05:01:26');
+INSERT INTO `tblmessagereport` (`reportID`, `messageID`, `reason`, `reportedUser`, `reportedBy`, `reportedByID`, `reportDate`) VALUES
+(19, 43, 'Spam', 7, 'jimmy2', 9, '2020-08-05 01:03:08'),
+(20, 45, 'Spam', 7, 'jimmy2', 9, '2020-08-05 01:04:23');
 
 -- --------------------------------------------------------
 
@@ -410,7 +300,12 @@ INSERT INTO `tblpmessage` (`pMessageID`, `pMessage`, `pMessageDate`, `userID`) V
 (4, ' This is a test for the emoji stuffs :0', '2020-05-29 21:38:53', 9),
 (8, 'Hello! I hope you all have a wonderful day today, regardless of what might be going on!', '2020-06-02 03:10:41', 9),
 (9, '<em>Test to ensure that the formatting for the post subsists.</p></em>', '2020-06-02 03:23:51', 9),
-(10, '<p>this is a message</p>', '2020-06-23 21:39:22', 9);
+(10, '<p>this is a message</p>', '2020-06-23 21:39:22', 9),
+(11, '<p>💃</p>\r\n', '2020-08-07 22:47:45', 9),
+(14, '<p>❗️</p>\\r\\n', '2020-08-07 22:50:38', 9),
+(15, '<p>👄👄👄</p>\\r\\n', '2020-08-07 22:53:05', 9),
+(16, '<p>👨</p>\\r\\n', '2020-08-08 04:07:40', 9),
+(17, '<p>👫</p>\\r\\n', '2020-08-13 20:28:39', 9);
 
 -- --------------------------------------------------------
 
@@ -429,45 +324,23 @@ CREATE TABLE `tbltags` (
 --
 
 INSERT INTO `tbltags` (`tagID`, `postID`, `tagName`) VALUES
-(116, 34, 'tag'),
-(117, 34, 'for'),
-(118, 34, 'system'),
-(119, 34, 'testing'),
-(120, 35, 'custom'),
-(123, 37, 'Edit'),
-(126, 39, 'Seen'),
-(128, 40, 'image'),
-(130, 40, 'for'),
-(131, 40, 'blogpost'),
-(132, 41, 'single'),
-(133, 41, 'image'),
-(135, 41, 'for'),
-(136, 41, 'blogpost'),
-(140, 43, 'no'),
-(141, 43, 'image'),
-(142, 43, 'blog'),
-(144, 45, 'final'),
 (146, 46, 'admin'),
 (148, 46, 'blog'),
 (149, 47, 'admin'),
 (151, 47, 'blog'),
 (152, 47, 'image'),
-(153, 48, 'firefox'),
-(184, 64, 'formatting'),
-(188, 61, 'new'),
-(189, 61, 'tags'),
-(194, 31, 'hello'),
-(195, 31, 'no'),
-(196, 31, 'dude'),
-(197, 21, 'new'),
-(198, 21, 'tags'),
-(199, 65, 'blogpost'),
-(200, 65, 'preview'),
-(201, 66, 'blogpost'),
-(202, 66, 'preview'),
-(203, 66, 'image'),
-(230, 30, 'one'),
-(231, 30, 'two');
+(348, 91, 'blogpost'),
+(349, 91, 'preview'),
+(350, 92, 'blogpost'),
+(351, 92, 'preview'),
+(352, 93, 'blogpost'),
+(353, 93, 'preview'),
+(361, 97, 'first'),
+(362, 97, 'post'),
+(363, 98, 'first'),
+(364, 98, 'post'),
+(365, 99, 'first'),
+(366, 99, 'post');
 
 -- --------------------------------------------------------
 
@@ -477,14 +350,14 @@ INSERT INTO `tbltags` (`tagID`, `postID`, `tagName`) VALUES
 
 CREATE TABLE `tbluser` (
   `userID` int(5) NOT NULL,
-  `username` varchar(25) NOT NULL,
-  `password` varchar(50) NOT NULL,
-  `description` varchar(2500) DEFAULT NULL,
-  `pictureID` varchar(1000) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
+  `username` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 DEFAULT NULL,
+  `pictureID` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `regDate` date NOT NULL,
   `position` int(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tbluser`
@@ -493,9 +366,8 @@ CREATE TABLE `tbluser` (
 INSERT INTO `tbluser` (`userID`, `username`, `password`, `description`, `pictureID`, `email`, `regDate`, `position`) VALUES
 (7, 'jimmy', '5f4dcc3b5aa765d61d8327deb882cf99', '<p>Test Description2</p>', '958deus-ex-human-revolution-wallpaper-adam-jensen-is-neo.jpg', 'test2@gmail.com', '2020-05-08', 1),
 (8, 'JimbobTheSecond2', '5f4dcc3b5aa765d61d8327deb882cf99', NULL, NULL, NULL, '2020-05-08', 1),
-(9, 'jimmy2', '5f4dcc3b5aa765d61d8327deb882cf99', '<p>Henlo, how are you?</p>', '3781428436079-deus-ex-mankind-divided-concept-art-2.jpg', 'rys19@live.com', '2020-05-13', 2),
-(10, 'TestUser', 'dc647eb65e6711e155375218212b3964', NULL, '823alena-aenami-005.jpg', NULL, '2020-05-20', 1),
-(11, 'bill', '5f4dcc3b5aa765d61d8327deb882cf99', '<strong>Hello!</strong><em>My name</em><u>is bill!</u><s>What is yours?</p></s>', '689sky_lantern.jpg', 'bill2@gmail.com', '2020-06-03', 1);
+(9, 'jimmy2', '5f4dcc3b5aa765d61d8327deb882cf99', '<p>Here are some emotes&nbsp;👄👃👏</p>\r\n', '3781428436079-deus-ex-mankind-divided-concept-art-2.jpg', 'rys19@live.com', '2020-05-13', 2),
+(10, 'TestUser', 'dc647eb65e6711e155375218212b3964', NULL, '823alena-aenami-005.jpg', NULL, '2020-05-20', 1);
 
 --
 -- Indexes for dumped tables
@@ -543,7 +415,8 @@ ALTER TABLE `tblcommentreport`
   ADD PRIMARY KEY (`reportID`),
   ADD KEY `tblreport_ibfk1` (`commentID`),
   ADD KEY `reportedUser` (`reportedUser`),
-  ADD KEY `reportedBy` (`reportedBy`);
+  ADD KEY `reportedBy` (`reportedBy`),
+  ADD KEY `reportedByID` (`reportedByID`);
 
 --
 -- Indexes for table `tblconfirmedposts`
@@ -577,7 +450,8 @@ ALTER TABLE `tblmessagereport`
   ADD PRIMARY KEY (`reportID`),
   ADD KEY `messageID` (`messageID`),
   ADD KEY `reportedUser` (`reportedUser`),
-  ADD KEY `reportedBy` (`reportedBy`);
+  ADD KEY `reportedBy` (`reportedBy`),
+  ADD KEY `reportedByID` (`reportedByID`);
 
 --
 -- Indexes for table `tblpmessage`
@@ -608,67 +482,67 @@ ALTER TABLE `tbluser`
 -- AUTO_INCREMENT for table `tblblogcomments`
 --
 ALTER TABLE `tblblogcomments`
-  MODIFY `commentID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `commentID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `tblbloggercomments`
 --
 ALTER TABLE `tblbloggercomments`
-  MODIFY `blogCommentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `blogCommentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `tblblogpost`
 --
 ALTER TABLE `tblblogpost`
-  MODIFY `postID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `postID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `tblcommentreport`
 --
 ALTER TABLE `tblcommentreport`
-  MODIFY `reportID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `reportID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `tblconfirmedposts`
 --
 ALTER TABLE `tblconfirmedposts`
-  MODIFY `cPostID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `cPostID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `tblimages`
 --
 ALTER TABLE `tblimages`
-  MODIFY `imageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+  MODIFY `imageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=158;
 
 --
 -- AUTO_INCREMENT for table `tblmessage`
 --
 ALTER TABLE `tblmessage`
-  MODIFY `messageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `messageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `tblmessagereport`
 --
 ALTER TABLE `tblmessagereport`
-  MODIFY `reportID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `reportID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `tblpmessage`
 --
 ALTER TABLE `tblpmessage`
-  MODIFY `pMessageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `pMessageID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `tbltags`
 --
 ALTER TABLE `tbltags`
-  MODIFY `tagID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=232;
+  MODIFY `tagID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=372;
 
 --
 -- AUTO_INCREMENT for table `tbluser`
 --
 ALTER TABLE `tbluser`
-  MODIFY `userID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `userID` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Constraints for dumped tables
@@ -696,14 +570,14 @@ ALTER TABLE `tblblogger`
 -- Constraints for table `tblbloggercomments`
 --
 ALTER TABLE `tblbloggercomments`
-  ADD CONSTRAINT `tblbloggercomments_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `tblblogger` (`userID`),
+  ADD CONSTRAINT `tblbloggercomments_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `tbluser` (`userID`),
   ADD CONSTRAINT `tblbloggercomments_ibfk_2` FOREIGN KEY (`commentID`) REFERENCES `tblblogcomments` (`commentID`);
 
 --
 -- Constraints for table `tblblogpost`
 --
 ALTER TABLE `tblblogpost`
-  ADD CONSTRAINT `tblblogpost_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `tblblogger` (`userID`);
+  ADD CONSTRAINT `tblblogpost_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `tbluser` (`userID`);
 
 --
 -- Constraints for table `tblcommentreport`
@@ -711,6 +585,7 @@ ALTER TABLE `tblblogpost`
 ALTER TABLE `tblcommentreport`
   ADD CONSTRAINT `tblcommentreport_ibfk_3` FOREIGN KEY (`reportedUser`) REFERENCES `tbluser` (`userID`),
   ADD CONSTRAINT `tblcommentreport_ibfk_4` FOREIGN KEY (`reportedBy`) REFERENCES `tbluser` (`username`),
+  ADD CONSTRAINT `tblcommentreport_ibfk_5` FOREIGN KEY (`reportedByID`) REFERENCES `tbluser` (`userID`),
   ADD CONSTRAINT `tblreport_ibfk1` FOREIGN KEY (`commentID`) REFERENCES `tblblogcomments` (`commentID`);
 
 --
@@ -741,7 +616,8 @@ ALTER TABLE `tblmessage`
 ALTER TABLE `tblmessagereport`
   ADD CONSTRAINT `tblmessagereport_ibfk_1` FOREIGN KEY (`messageID`) REFERENCES `tblmessage` (`messageID`),
   ADD CONSTRAINT `tblmessagereport_ibfk_3` FOREIGN KEY (`reportedUser`) REFERENCES `tbluser` (`userID`),
-  ADD CONSTRAINT `tblmessagereport_ibfk_4` FOREIGN KEY (`reportedBy`) REFERENCES `tbluser` (`username`);
+  ADD CONSTRAINT `tblmessagereport_ibfk_4` FOREIGN KEY (`reportedBy`) REFERENCES `tbluser` (`username`),
+  ADD CONSTRAINT `tblmessagereport_ibfk_5` FOREIGN KEY (`reportedByID`) REFERENCES `tbluser` (`userID`);
 
 --
 -- Constraints for table `tblpmessage`

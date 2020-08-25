@@ -1,8 +1,5 @@
 <?php	
-	/*This page handles the blogpost creation functionality of the application.*/
-	//set Quill.js functions
-	namespace DBlackborough\Quill;
-	
+ob_start();
 	//This is for PHPMailer
 	use PHPMailer\PHPMailer\PHPMailer;
 	use PHPMailer\PHPMailer\SMTP;
@@ -23,7 +20,7 @@
 	//isset for the form post
 	if(isset($_POST['submit'])){
 		//get the post from the form
-		$quill_json=$_POST['quill_json'];
+		$body=$_POST['body'];
 		$title=$_POST['title'];
 		//setup error handling variables
 		
@@ -72,10 +69,10 @@
 		}//end of foreach
 		
 		//validate code so it fits the format
-		validate($quill_json, $title, $tags);
+		validate($body, $title, $tags);
 		
 		//santize data so there are no scary things in it
-		sanitize($quill_json, $title);
+		sanitize($body, $title);
 		
 		//this is a check done to ensure that there are no errors, if there are errors then the render/insert won't run
 		/*
@@ -87,18 +84,12 @@
 		*/
 		if($count==0){
 			//magic code that renders the quill delta into readable text
-			try {
-				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
-				$result = $quill->render();
-			} catch (\Exception $e) {
-				echo $e->getMessage();
-			}
 			
 			//store the html in the database
-			insert($result, $title, $uID);
+			insert($body, $title, $uID);
 			
 			//get postID for insert into database
-			getID($result, $title, $uID);
+			getID($body, $title, $uID);
 			
 			//validate and insert images
 			insertImage();
@@ -404,6 +395,10 @@
 		//create new date object to inform the user when the blogpost was made.
 		$date=date('Y-m-d H:i:s');
 		
+		$dt = new DateTime("now", new DateTimeZone('America/Guyana'));
+		
+		$date = $dt->format('Y-m-d H:i:s');
+		
 		//include database connection
 		include('dbConnect.php');
 		//get count of blogposts that need to be confirmed to put into the body of the email
@@ -608,6 +603,10 @@
 		//create new date object for the insert into the database
 		$date=date('Y-m-d H:i:s');
 		
+		$dt = new DateTime("now", new DateTimeZone('America/Guyana'));
+		
+		$date = $dt->format('Y-m-d H:i:s');
+		
 		$dbSuccess=false;
 		
 		//get db connector
@@ -665,10 +664,8 @@
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/custom.css" rel="stylesheet">
   
-  <!--Quill Link-->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+  <!--ckeditor Link-->
+  <script src="ckeditor/ckeditor.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -698,20 +695,8 @@
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -805,7 +790,7 @@
 	  
 			<div class="form-group"> 
 				<label class="control-label col-sm-2"><h4>Blog Title:</h4></label>
-				 <div class="col-sm-10">
+				 <div class="col-sm-12">
 
 					<input type="text" class="form-control" name="title" id="title" aria-labelledby="title"/> 
 				 </div>
@@ -814,18 +799,17 @@
 			
 			<div class="form-group">
 				<label class="control-label col-sm-2"><h4>Blog Body:</h4></label>
-				<div class="col-sm-10">
-					<div id="editor">
-						
-					</div>
+				<div class="col-sm-12">
+				<small>You can use emotes when you're making your post, click on the right, next to the omega (Ω) symbol.</small>
+				<!--The id for the text area has to be 'editor' for the script to recognize it-->
+					<textarea id="editor" name="body"></textarea>
 					<!--This is needed to store the information that the user enters into the rich text area.-->
-					<input type="hidden" id="quill_json" name="quill_json" aria-labelledby="blog writing area"/>
 				</div>
 			</div>
 			
 			<div class="form-group"> 
 				<label class="control-label col-sm-5"><h4>Attach Images (Optional, 2 Maximum):</h4></label>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 				<!--Code Adapted from:http://www.javascripthive.info/php/php-multiple-files-upload-validation/-->
 				<!--Accessed on: 26/11/2017-->
 				<input type="file" class="form-control" name="fileUpload[]" aria-labelledby="Select the images you want to upload" multiple/> 
@@ -835,16 +819,16 @@
 			
 			<div class="form-group"> 
 				<label class="control-label col-sm-2"><h4>Blog Tags:</h4></label>
-				<div class="col-sm-10">You can tag your blog however you like, please separate tags with a comma and only
+				<div class="col-sm-12">You can tag your blog however you like, please separate tags with a comma and only
 				choose tags relevant to your post! <br/> For example: <strong>personal, vent, anxiety, stress, frustrated etc.</strong> <br/> (Max tags: 5)</div>
-				 <div class="col-sm-10">
+				 <div class="col-sm-12">
 
 					<input type="text" class="form-control" name="tags" id="tags" aria-labelledby="blog tags"/> 
 				 </div>
 			 <span class="error" id="tag_err"></span>
 			</div>
 			
-			<div class="col-sm-10">
+			<div class="col-sm-12">
 				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="submit" value="Submit & View Preview" onClick="return valBlog();"/>
 			</div>
 		</form>
@@ -857,32 +841,7 @@
 	<!-- Initialize Quill editor -->
 		<script>
 		//These are the options for the toolbar
-			var toolbarOptions = [
-			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-
-			  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript                
-
-			  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-			  ['clean']                                         // remove formatting button
-			];
-		
-			//this creates the actual rich text area
-			var quill = new Quill('#editor', {
-			  modules: {
-				toolbar: toolbarOptions
-			  },
-			  theme: 'snow'
-			});	
-			
-		  //this gets the data from the rich text area
-		  $('#target').submit(function() {
-			$('#quill_json').val(JSON.stringify(quill.getContents()));
-			return true;
-		});
-		  
+			CKEDITOR.replace( 'editor' );
 		</script>
 
   </main><!-- End #main -->

@@ -1,6 +1,7 @@
 <?php
 	/*This page handles user profile functionality*/
 	session_start();
+	ob_start();
 	if($_SESSION['uName']==""){
 		
 		Header("Location:login.php?feedback=You must be logged in to access this page...");
@@ -223,20 +224,8 @@
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -349,7 +338,7 @@
 				
 				//get results of query
 				mysqli_stmt_bind_result($stmt, $description, $picture, $email);
-						
+					$description = str_ireplace(array("\r","\n",'\r','\n'),'', $description);
 					if(mysqli_stmt_fetch($stmt)){
 							/*Echo user profile information*/
 							echo"<div class='row'>";
@@ -392,7 +381,9 @@
 		  ?>
 		  <br/>
 		  <div class="col-sm-12">
-			<?php echo"<a href='editDescription.php?email=$email&description=$description&picture=$picture'> <button class='btn btn-outline-primary form-control sincerely'>Edit Account Details</button></a>"; ?>
+			<?php 
+			if(isset($_SESSION['uID'])){$uID=$_SESSION['uID'];};
+			echo"<a href='editDescription.php?uID=$uID'> <button class='btn btn-outline-primary form-control sincerely'>Edit Account Details</button></a>"; ?>
 			<br/>
 		</div>
 		
@@ -447,6 +438,11 @@
 					
 					//fetch and display results
 					while (mysqli_stmt_fetch($stmt)){
+						  $heading=substr($heading,0,25);
+					        $content=substr($content,0,25);
+					        $content=strip_tags($content);
+					    	$content = str_ireplace(array("\r","\n",'\r','\n'),'', $content);
+							$postDate=date('h:i:s a m/d/Y', strtotime($postDate));
 						echo"
 							
 						<tr>	
@@ -504,27 +500,24 @@
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+         <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

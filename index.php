@@ -2,6 +2,7 @@
 /*This is the homepage for the website*/
 //session start
 session_start();
+ob_start();
 //set up error variables
 $count=0;
 $feedback="";	
@@ -102,20 +103,8 @@ $feedback="";
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -203,6 +192,7 @@ $feedback="";
 				
 				//fetch results
 				if(mysqli_stmt_fetch($stmt)){
+					$pMessage = str_ireplace(array("\r","\n",'\r','\n'),'', $pMessage);
 					echo"<h6>$pMessage</h6>";
 					
 					echo"<div class='row col-sm-12'>
@@ -489,9 +479,14 @@ $feedback="";
 				data-target='#notifs'>View Notifications</button>
 				</div>
 				<div id='notifs' class='collapse'>
-					<br/>
-					<h5>Post Notifications</h5>
-					$output
+					<br/>";
+				//this is only shown to bloggers
+				if($_SESSION['position']==1){
+					echo
+					"<h5>Post Notifications</h5>
+					$output";
+				}
+					echo"
 					<h5>Comments:</h5>
 					$comments
 					<h5>Messages:</h5>
@@ -590,7 +585,7 @@ $feedback="";
 				while(mysqli_stmt_fetch($stmt)){
 					$preview=substr($content,0,100);
 					$preview=strip_tags($preview);
-					
+					$postDate=date('h:i:s a m/d/Y', strtotime($postDate));
 					echo"
 						 <article class='entry'>";
 						/*
@@ -606,7 +601,7 @@ $feedback="";
 						
 					echo"	
 						<h2 class='entry-title'>
-								<a href='viewBlogSingle.php?postID=$postID'>$heading</a>
+								<div class='wrapword'><a href='viewBlogSingle.php?postID=$postID'>$heading</a></div>
 							</h2>
 							
 						  <div class='entry-meta'>
@@ -702,70 +697,108 @@ $feedback="";
 
               </div><!-- End sidebar search formn-->
 
-              <h3 class="sidebar-title">Categories</h3>
-              <div class="sidebar-item categories">
-                <ul>
-                  <li><a href="#">General <span>(25)</span></a></li>
-                  <li><a href="#">Lifestyle <span>(12)</span></a></li>
-                  <li><a href="#">Travel <span>(5)</span></a></li>
-                  <li><a href="#">Design <span>(22)</span></a></li>
-                  <li><a href="#">Creative <span>(8)</span></a></li>
-                  <li><a href="#">Educaion <span>(14)</span></a></li>
-                </ul>
-
-              </div><!-- End sidebar categories-->
 
               <h3 class="sidebar-title">Recent Posts</h3>
               <div class="sidebar-item recent-posts">
-                <div class="post-item clearfix">
-                  <img src="assets/img/blog-recent-1.jpg" alt="">
-                  <h4><a href="blog-single.html">Nihil blanditiis at in nihil autem</a></h4>
-                  <time datetime="2020-01-01">Jan 1, 2020</time>
-                </div>
+			  <?php
+			  
+				include('dbConnect.php');
+				
+				$sql="SELECT tblblogpost.postID, tblblogpost.heading, tblblogpost.postDate, tblimages.imageName
+				FROM tbluser, tblblogpost, tblconfirmedposts, tblimages
+				WHERE tbluser.userID=tblblogpost.userID 
+				AND tblblogpost.postID=tblconfirmedposts.postID
+				AND tblblogpost.postID=tblimages.postID
+				AND tblconfirmedposts.confirmed=1
+				GROUP BY tblblogpost.postID
+				ORDER BY tblblogpost.postDate DESC
+				LIMIT 5";
+				
+				if($stmt=mysqli_prepare($mysqli, $sql)){
+					//execute query
+					if(mysqli_stmt_execute($stmt)){
+					
+					//bind results
+					mysqli_stmt_bind_result($stmt, $postID, $heading, $postDate, $imageName);
+					
+						while(mysqli_stmt_fetch($stmt)){
+							$preview=substr($content,0,100);
+							$preview=strip_tags($preview);
+							$postDate=date('h:i:s a m/d/Y', strtotime($postDate));
+							
+							if($imageName=="" || $imageName==null){
+								echo"
+							
+									 <div class='post-item clearfix'>
+									  <h4><a href='viewBlogSingle.php?postID=$postID'>$heading</a></h4>
+									  <time datetime='2020-01-01'>$postDate</time>
+									</div>
+							
+								";
+							}else{
+								echo"
+							
+									 <div class='post-item clearfix'>
+									  <img src='blogImages/$imageName' alt='image of a user's blogpost'>
+									  <h4><a href='viewBlogSingle.php?postID=$postID'>$heading</a></h4>
+									  <time datetime='2020-01-01'>$postDate</time>
+									</div>
+							
+								";
+							}
+							
+							
+							
+						}//end of while
+					}//end of if
+				mysqli_stmt_close($stmt);
+			}//end of stmt
+			mysqli_close($mysqli);
+			  
+			  ?>
 
-                <div class="post-item clearfix">
-                  <img src="assets/img/blog-recent-2.jpg" alt="">
-                  <h4><a href="blog-single.html">Quidem autem et impedit</a></h4>
-                  <time datetime="2020-01-01">Jan 1, 2020</time>
-                </div>
-
-                <div class="post-item clearfix">
-                  <img src="assets/img/blog-recent-3.jpg" alt="">
-                  <h4><a href="blog-single.html">Id quia et et ut maxime similique occaecati ut</a></h4>
-                  <time datetime="2020-01-01">Jan 1, 2020</time>
-                </div>
-
-                <div class="post-item clearfix">
-                  <img src="assets/img/blog-recent-4.jpg" alt="">
-                  <h4><a href="blog-single.html">Laborum corporis quo dara net para</a></h4>
-                  <time datetime="2020-01-01">Jan 1, 2020</time>
-                </div>
-
-                <div class="post-item clearfix">
-                  <img src="assets/img/blog-recent-5.jpg" alt="">
-                  <h4><a href="blog-single.html">Et dolores corrupti quae illo quod dolor</a></h4>
-                  <time datetime="2020-01-01">Jan 1, 2020</time>
-                </div>
 
               </div><!-- End sidebar recent posts-->
 
-              <h3 class="sidebar-title">Tags</h3>
+              <h3 class="sidebar-title">Recent Tags</h3>
               <div class="sidebar-item tags">
-                <ul>
-                  <li><a href="#">App</a></li>
-                  <li><a href="#">IT</a></li>
-                  <li><a href="#">Business</a></li>
-                  <li><a href="#">Business</a></li>
-                  <li><a href="#">Mac</a></li>
-                  <li><a href="#">Design</a></li>
-                  <li><a href="#">Office</a></li>
-                  <li><a href="#">Creative</a></li>
-                  <li><a href="#">Studio</a></li>
-                  <li><a href="#">Smart</a></li>
-                  <li><a href="#">Tips</a></li>
-                  <li><a href="#">Marketing</a></li>
-                </ul>
-
+			  
+			  <?php
+			  
+				include('dbConnect.php');
+				//variable declaration
+				$recentTags="";
+				
+				//this query would get all the tags of the recently made posts
+				if($stmt=mysqli_prepare($mysqli,
+				"SELECT tbltags.tagName
+				FROM tbltags, tblblogpost, tblconfirmedposts
+				WHERE tbltags.postID=tblblogpost.postID
+                AND tbltags.postID=tblconfirmedposts.postID
+                AND tblconfirmedposts.confirmed=1
+				ORDER By tblblogpost.postDate DESC
+				LIMIT 12
+				")){
+					mysqli_stmt_execute($stmt);
+					
+					mysqli_stmt_bind_result($stmt, $recentTags);
+					
+					echo"<ul>";
+					
+					while(mysqli_stmt_fetch($stmt)){
+						echo"
+						
+						<li><a href='searchResults.php?search=$recentTags'>$recentTags</a></li>
+						
+						";
+					}//end of while
+					echo"</ul>";
+				mysqli_stmt_close($stmt);
+			}//end of stmt
+			mysqli_close($mysqli);
+			  
+			  ?>
+               
               </div><!-- End sidebar tags-->
 
             </div><!-- End sidebar -->
@@ -789,25 +822,22 @@ $feedback="";
 
           <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="contact.html">Login</a></li>
-          <li><a href="contact.html">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

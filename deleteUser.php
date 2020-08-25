@@ -1,4 +1,5 @@
 <?php
+ob_start();
 	/*This script handles deleting a user.*/
 	//error handling variables
 	$feedback="";

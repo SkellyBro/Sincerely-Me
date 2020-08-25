@@ -1,6 +1,6 @@
 <?php
+ob_start();
 //this is for the quill editor thing
-namespace DBlackborough\Quill;
 
 //This is for PHPMailer
 use PHPMailer\PHPMailer\PHPMailer;
@@ -36,24 +36,29 @@ require_once 'vendor/autoload.php';
 	//get the message sent by the user
 	if(isset($_POST['submit'])){
 		//get variables
-		$quill_json=$_POST['quill_json'];
+		$body=$_POST['body'];
 		$recipient=$_POST['recipient'];
 		$title=$_POST['title'];
 		
 		//create new date object for the insert into the database
 		$date=date('Y-m-d H:i:s');
 		
-		//create random number to act as the "unique" ID for the conversation
+		$dt = new DateTime("now", new DateTimeZone('America/Guyana'));
+		
+		$date = $dt->format('Y-m-d H:i:s');
+		
 		$rand=rand(0,1000);
 		
+		checkRand($rand);
+		
 		//validate quill_json data
-		if($quill_json=="" || $quill_json==null){
+		if($body=="" || $body==null){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
-		}else if($quill_json=='{"ops":[{"insert":"\n"}]}'){
+		}else if($body=='{"ops":[{"insert":"\n"}]}'){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
-		}else if(strlen($quill_json)>2500){
+		}else if(strlen($body)>2500){
 			$count++;
 			$feedback.="<br/> Your post cannot be more than 2500 characters.";
 		}
@@ -83,23 +88,6 @@ require_once 'vendor/autoload.php';
 		}
 		
 		if($count==0){
-			
-			//magic code that renders the quill delta into readable text
-			try {
-				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
-				$result = $quill->render();
-			} catch (\Exception $e) {
-				echo $e->getMessage();
-			}
-
-			//validate post data
-			if($result=="" || $result==null){
-				$count++;
-				$feedback.="<br/> Your post cannot be empty.";
-			}else if(strlen($result)<2){
-				$count++;
-				$feedback.="<br/> Your post cannot be less than 2 characters.";
-			}	
 
 			//include database connections
 			include('dbConnect.php');
@@ -109,28 +97,27 @@ require_once 'vendor/autoload.php';
 			$recipient= filter_var($recipient, FILTER_SANITIZE_STRING); 
 			
 			//sanitize data going into MySQL
-			$result= mysqli_real_escape_string($mysqli, $result);
+			$body= mysqli_real_escape_string($mysqli, $body);
 			$title= mysqli_real_escape_string($mysqli, $title);
 			$recipient= mysqli_real_escape_string($mysqli, $recipient);
 			
 			
 			//put the content and title into the session to repopulate fields if the recipient's username is lost.
-			$_SESSION['messageContent']=strip_tags($result);
-			$_SESSION['messageTitle']=$title;
+			if(isset($_SESSION['uName'])){
+				$_SESSION['messageContent']=$body;
+				$_SESSION['messageTitle']=$title;
+			}
 				
 			if($count==0){	
 				//this is a check to see if the entered recipient is found in the system, and if they are found then the insert query would be run
 				if(getRecipient($recipient)){
 					
-					//store message in database
-					
-					//make database connection
 					include('dbConnect.php');
 					
 					//create insert statement to store the message in the system database
 					if($stmt=mysqli_prepare($mysqli, 
 					"INSERT INTO tblmessage(conversationID, originalSender, originalRecipient, sender, recipient, messageDate, messageTitle, messageContent, userPosition) VALUES(?,?,?,?,?,?,?,?,?)")){
-						mysqli_stmt_bind_param($stmt, 'iiiiisssi', $rand, $uID, $recipientID, $uID, $recipientID, $date, $title, $result, $pos);
+						mysqli_stmt_bind_param($stmt, 'iiiiisssi', $rand, $uID, $recipientID, $uID, $recipientID, $date, $title, $body, $pos);
 						
 						if(mysqli_stmt_execute($stmt)){
 							//so, as part of the functionality for the system, if an admin receives a message, an email copy is sent to them
@@ -160,6 +147,19 @@ require_once 'vendor/autoload.php';
 			}//end of count
 		}//end of count
 	}//end of isset
+	
+	function checkRand($rand){
+		include('dbConnect.php');
+		
+		if($stmt=mysqli_prepare($mysqli, "SELECT conversationID FROM tblmessage WHERE conversationID=?")){
+			mysqli_stmt_bind_param($stmt, 'i', $rand);
+			
+			if(mysqli_stmt_execute($stmt)){
+				$rand=rand(0,1000);
+				return $rand;
+			}
+		}
+	}
 
 	/*This is a function used to get information of the recipient
 	$rec is the recipient username
@@ -294,11 +294,7 @@ require_once 'vendor/autoload.php';
   <link href="assets/css/custom.css" rel="stylesheet">
   
   <!--Quill Link-->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-   <link rel="stylesheet" type="text/css" href="node_module/quill-emoji/dist/quill-emoji.css">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-  <script type="text/javascript" src="node_modules/quill-emoji/dist/quill-emoji.js"></script>
+   <script src="ckeditor/ckeditor.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -327,21 +323,9 @@ require_once 'vendor/autoload.php';
           <li class="active"><a href="index.php">Home</a></li>
 
           <li class="drop-down"><a href="#">About</a>
-           <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+            <ul>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 		  
@@ -458,11 +442,9 @@ require_once 'vendor/autoload.php';
 			<div class="form-group">
 				<label class="control-label col-sm-2">Message Content:</label>
 				<div class="col-sm-12">
-					<div id="editor">
-						
-					</div>
-					<!--This is needed to store the information that the user enters into the rich text area.-->
-					<input type="hidden" id="quill_json" name="quill_json" aria-labelledby="blog writing area"/>
+				<small>You can use emotes when you're making your post, click on the right, next to the omega (Ω) symbol.</small>
+				<!--This is needed for the rich text area-->
+					<textarea id="editor" name="body"></textarea>
 				</div>
 			</div>
 			
@@ -479,41 +461,17 @@ require_once 'vendor/autoload.php';
 	  
 	  </div>
 	  
-	  <?php if(isset($_SESSION['messageContent'])){$content=$_SESSION['messageContent'];}?>
+	  <?php if(isset($_SESSION['messageContent'])){
+		  $content=$_SESSION['messageContent'];
+		}?>
 	  
 	  <script>
-	  //this is to get the content into the quill editor
-		var x = "<?php echo"$content"?>"; 
+		var x = "<?php echo $content ?>";
 		
-		//These are the options for the toolbar
-			var toolbarOptions = [
-			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-
-			  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript                
-
-			  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-			  ['clean']                                         // remove formatting button
-			];
-		
-			//this creates the actual rich text area
-			var quill = new Quill('#editor', {
-			  modules: {
-				toolbar: toolbarOptions
-			  },
-			  theme: 'snow'
-			});	
+		CKEDITOR.replace( 'editor' );
 			
-			//this sets the text inside of the editor
-			quill.setText(x);
-			
-		  //this gets the data from the rich text area
-		  $('#target').submit(function() {
-			$('#quill_json').val(JSON.stringify(quill.getContents()));
-			return true;
-		});
+		//this sets the text inside of the editor
+		CKEDITOR.instances['editor'].setData(x);
 		
 		//This is some neat little code to prevent a form resubmission if you reload the page
 		/*
@@ -541,25 +499,22 @@ require_once 'vendor/autoload.php';
 
           <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

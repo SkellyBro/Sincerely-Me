@@ -1,8 +1,8 @@
 <?php
-	/*This page is used to allow users to view a single blogpost in deep detail, and facilitate commenting of the blogpost as well.*/
-	namespace DBlackborough\Quill;
+
 	session_start();
-	require_once 'vendor/autoload.php';
+	ob_start();
+
 	
 	if($_SESSION['uName']==""){
 		
@@ -31,35 +31,23 @@
 	//comment submit
 	if(isset($_POST['submit'])){
 		//get the comment body and the blogpost ID
-		$quill_json=$_POST['quill_json'];
+		$body=$_POST['body'];
 		$post=$_POST['postID'];
 		
 		//create new date object for the insert into the database
 		$date=date('Y-m-d H:i:s');
 		
+		$dt = new DateTime("now", new DateTimeZone('America/Guyana'));
+		
+		$date = $dt->format('Y-m-d H:i:s');
+		
 		//validate post data
-		if($quill_json=="" || $quill_json==null){
+		if($body=="" || $body==null){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
-		}else if($quill_json=='{"ops":[{"insert":"\n"}]}'){
-			$count++;
-			$feedback.="<br/> Your post cannot be empty.";
-		}	
+		}
 		
 		if($count==0){
-			//magic code that renders the quill delta into readable text
-			try {
-				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
-				$result = $quill->render();
-			} catch (\Exception $e) {
-				echo $e->getMessage();
-			}
-			
-			//validate post data
-			if($result=="" || $result==null){
-				$count++;
-				$feedback.="<br/> Your post cannot be empty.";
-			}
 			
 			//include database connections
 			include('dbConnect.php');
@@ -68,14 +56,14 @@
 			//$result= filter_var($result, FILTER_SANITIZE_STRING); 
 			
 			//sanitize data going into MySQL
-			$result= mysqli_real_escape_string($mysqli, $result);
+			$body= mysqli_real_escape_string($mysqli, $body);
 				
 			if($count==0){	
 				//insert comment
-				insertComment($result, $date, $post);
+				insertComment($body, $date, $post);
 				
 				//getID
-				getCommentID($result, $post);
+				getCommentID($body, $post);
 				
 				//insert into blogger comments
 				insertBloggerComments($commentID, $uID);
@@ -116,10 +104,10 @@
 	}//end of insertBloggerComments
 	
 	/*This gets the ID of the recently made comment
-	*$result is the body of the comment
+	*$body is the body of the comment
 	*$post is the postID
 	*/
-	function getCommentID($result, $post){
+	function getCommentID($body, $post){
 		global $feedback;
 		global $count;
 		global $success;
@@ -130,7 +118,7 @@
 		if($stmt=mysqli_prepare($mysqli, 
 		"SELECT tblblogcomments.commentID FROM tblblogcomments WHERE tblblogcomments.content=? AND tblblogcomments.postID=?")){
 			//bind params
-			mysqli_stmt_bind_param($stmt, "si", $result, $post);
+			mysqli_stmt_bind_param($stmt, "si", $body, $post);
 			
 			//execute query
 			mysqli_stmt_execute($stmt);
@@ -153,11 +141,11 @@
 	}//end of get comment ID
 	
 	/*this method is to insert the comment in the database
-	$result is the entered user script
+	$body is the entered user script
 	$date is the datetime of the comment
 	$post is the postid for the comment
 	*/
-	function insertComment($result, $date, $post){
+	function insertComment($body, $date, $post){
 		global $feedback;
 		global $count; 
 		global $success;
@@ -168,7 +156,7 @@
 			if($stmt=mysqli_prepare($mysqli,
 			"INSERT INTO tblblogcomments(content, postDate, postID) VALUES(?, ?, ?)")){
 				//bind all the parameters
-				mysqli_stmt_bind_param($stmt, "ssi", $result, $date, $post);
+				mysqli_stmt_bind_param($stmt, "ssi", $body, $date, $post);
 				
 				//execute query
 				if(mysqli_stmt_execute($stmt)){
@@ -404,10 +392,8 @@
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/custom.css" rel="stylesheet">
   
-  <!--Quill Link-->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+   <!--ckeditor Link-->
+   <script src="ckeditor/ckeditor.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -437,22 +423,11 @@
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
+		  
            <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
@@ -638,6 +613,8 @@
 			
 			//fetch results
 			if(mysqli_stmt_fetch($stmt)){
+				$content = str_ireplace(array("\r","\n",'\r','\n'),'', $content);
+				$postDate=date('h:i:s a m/d/Y', strtotime($postDate));
 				echo"
 					<div class='container'>
 
@@ -661,7 +638,7 @@
 							  </div>
 							
 							  <h2 class='entry-title'>
-								<a href='confirmPost.php'>$heading</a>
+								<div class='wrapword'><a href='confirmPost.php'>$heading</a></div>
 							  </h2>
 
 							  <div class='entry-meta'>
@@ -673,7 +650,7 @@
 
 							  <div class='entry-content'>
 							   
-								$content
+								<div class='wrapword'>$content</div>
 
 							  </div>";
 							  
@@ -693,7 +670,7 @@
 								  */
 								  for($x=0; $x<$tagCount; $x++){
 									  echo"
-										<li><a href='#'>$tags[$x]</a></li>
+										<li><a href='searchResults.php?search=$tags[$x]'>$tags[$x]</a></li>
 									  ";
 								  }//end of for loop
 							//continuation of echoing out the article	  
@@ -792,6 +769,8 @@
 			
 			//fetch results
 			while(mysqli_stmt_fetch($stmt)){
+				$commentDate=date('h:i:s a m/d/Y', strtotime($commentDate));
+				$commentContent = str_ireplace(array("\r","\n",'\r','\n'),'', $commentContent);
 				echo"
 				<div class='blog-comments'>
 					<div class='comment clearfix'>";
@@ -819,18 +798,29 @@
 					<div class='row'>
 					
 					<div class='col-sm-10'>
-					<p>$commentContent</p>
+					<div class='wrapword'>$commentContent</div>
+					
 					</div>";
 					
 
 					//if the user is an admin they can delete a comment
-					if($_SESSION['uName']!=$commentUser && $commentUserPosition!=2 && $_SESSION['position']==2){
-						echo"
-						<div class='col-sm-2 row'>
-						<a href='reporting.php?commentID=$commentID'><sub>Report Comment</sub></a>
-						<br/>
-						<a href='viewBlogSingle.php?commentID=$commentID'><sub>Delete Comment</sub></a>
-						</div>";
+					if($_SESSION['position']==2){
+						
+						if($_SESSION['uName']==$commentUser){
+							echo"
+							<div class='col-sm-2 row'>
+							<a href='viewBlogSingle.php?commentID=$commentID'><sub>Delete Comment</sub></a>
+							</div>
+							";
+						}else{
+							echo"
+							<div class='col-sm-2 row'>
+							<a href='reporting.php?commentID=$commentID'><sub>Report Comment</sub></a>
+							<br/>
+							<a href='viewBlogSingle.php?commentID=$commentID'><sub>Delete Comment</sub></a>
+							</div>";
+						}
+						
 					}
 					
 					//regular bloggers cannot delete comments
@@ -845,6 +835,7 @@
 					echo"
 					</div>
 				  </div>
+				  <hr/>
 			  </div>";
 			}//end of while
 			mysqli_stmt_close($stmt);
@@ -856,9 +847,10 @@
 					echo"
 						<form id='target' class='form-horizontal' action='viewBlogSingle.php' method='post'>
 
-						<div id='editor'>
-							
-						</div>
+						<small>You can use emotes when you're making your post, click on the right, next to the omega (Ω) symbol.</small>
+						<!--This is needed for the rich text area-->
+						<textarea id='editor' name='body'></textarea>
+
 						<!--This is needed to store the information that the user enters into the rich text area.-->
 						<input type='hidden' id='quill_json' name='quill_json' aria-labelledby='blog writing area'/>
 						<input type='hidden' name='postID' value='$postID'/>
@@ -873,32 +865,7 @@
 		?>		
 				<!-- Initialize Quill editor -->
 		<script>
-		//These are the options for the toolbar
-			var toolbarOptions = [
-			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-
-			  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript                
-
-			  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-			  ['clean']                                         // remove formatting button
-			];
-		
-			//this creates the actual rich text area
-			var quill = new Quill('#editor', {
-			  modules: {
-				toolbar: toolbarOptions
-			  },
-			  theme: 'snow'
-			});	
-			
-		  //this gets the data from the rich text area
-		  $('#target').submit(function() {
-			$('#quill_json').val(JSON.stringify(quill.getContents()));
-			return true;
-		});
+		CKEDITOR.replace( 'editor' );
 		//This is some neat little code to prevent a form resubmission if you reload the page
 		/*
 		Code Author: dtbaker
@@ -925,27 +892,24 @@
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+         <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

@@ -1,12 +1,21 @@
 <?php 
 /*This page is used to help facilitate the reporting functionality of the system, where a user can report either a message or a comment*/
 session_start();
+ob_start();
 
 if($_SESSION['uName']==""){
 		
 	Header("Location:login.php?feedback=You must be logged in to access this page...");
 	
 }
+
+//This is for PHPMailer
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+//load stuff for the Quill rendering & PHPMailer
+require_once 'vendor/autoload.php';
 
 //error handling variables
 $feedback="";
@@ -53,7 +62,7 @@ if(isset($_POST['reportComment'])){
 	$reason=$_POST['reason'];
 	$commentID=$_POST['commentID'];
 	$rUser=$_POST['rUser'];
-	
+	$rType=0;
 	//validate data
 	
 	if($reason==null || $reason==""){
@@ -91,8 +100,8 @@ if(isset($_POST['reportComment'])){
 		"INSERT INTO tblcommentreport(commentID, reason, reportedUser, reportedBy, reportedByID, reportDate) VALUES (?,?,?,?,?,?)")){
 			mysqli_stmt_bind_param($stmt, 'isisis', $commentID, $reason, $rUser, $uName, $uID, $date);
 			if(mysqli_stmt_execute($stmt)){
-				$success="Report made successfully! The admins will attend to this matter as soon as possible! You will be returned to the homepage shortly.";
-				header("refresh:2; url=index.php" );
+				$rType=2;
+				sendEmail($rUser, $date, $reason, $commentID, $rType);
 			}else{
 				$count++;
 				$feedback.="<br/> Report could not be made, database error encountered. Please contact an administrator for assistance";
@@ -111,6 +120,7 @@ if(isset($_POST['reportMessage'])){
 	$mSender=$_POST['mSender'];
 	$reason=$_POST['reason'];
 	$messageID=$_POST['messageID'];
+	$rType=0;
 	
 	//validate data
 	if($mSender=="" || $mSender==null){
@@ -148,8 +158,8 @@ if(isset($_POST['reportMessage'])){
 		"INSERT INTO tblmessagereport(messageID, reason, reportedUser, reportedBy, reportedByID, reportDate) VALUES (?,?,?,?,?,?)")){
 			mysqli_stmt_bind_param($stmt, 'isisis', $messageID, $reason, $mSender, $uName, $uID, $date);
 			if(mysqli_stmt_execute($stmt)){
-				$success="Report made successfully! The admins will attend to this matter as soon as possible! You will be returned to the homepage shortly.";
-				header("refresh:2; url=index.php" );
+				$rType=1;
+				sendEmail($mSender, $date, $reason, $messageID, $rType);
 			}else{
 				$count++;
 				$feedback.="<br/> Report could not be made, database error encountered. Please contact an administrator for assistance";
@@ -158,6 +168,171 @@ if(isset($_POST['reportMessage'])){
 		}//end of if-stmt		
 	}//end of count
 }//end of reportMessage isset
+
+function sendEmail($sender, $date, $reason, $reportedContent, $rType){
+	global $feedback;
+	global $count;
+	global $success;
+	
+	//this is the variable that will be used to store the reported content
+	$content="";
+	$commentReport="";
+	$messageReport="";
+	
+	//get the user's username
+	if(isset($_SESSION['uName'])){
+		$uName=$_SESSION['uName'];
+	}
+	
+	//get reported content
+	include('dbConnect.php');
+	
+	if($rType==1){
+		if($stmt=mysqli_prepare($mysqli, 
+		"SELECT tblmessage.messageContent
+		FROM tblmessage
+		WHERE tblmessage.messageID=?")){
+			//bind param
+			mysqli_stmt_bind_param($stmt, "i", $reportedContent);
+			
+			//execute sql
+			mysqli_stmt_execute($stmt);
+			
+			//bind result
+			mysqli_stmt_bind_result($stmt, $content);
+			
+			if(!mysqli_stmt_fetch($stmt)){
+				$feedback.="An error occured with contacting the administrator, please contact a technician for assistance.";
+			}
+			mysqli_stmt_close($stmt);
+		}//end of if-stmt
+		mysqli_close($mysqli);
+	}else{
+		if($stmt=mysqli_prepare($mysqli, 
+		"SELECT tblblogcomments.content
+		FROM tblblogcomments
+		WHERE tblblogcomments.commentID=?")){
+			//bind param
+			mysqli_stmt_bind_param($stmt, "i", $reportedContent);
+			
+			//execute sql
+			mysqli_stmt_execute($stmt);
+			
+			//bind result
+			mysqli_stmt_bind_result($stmt, $content);
+			
+			if(!mysqli_stmt_fetch($stmt)){
+				$feedback.="An error occured with contacting the administrator, please contact a technician for assistance.";
+			}
+		mysqli_stmt_close($stmt);
+		}//end of if-stmt
+		mysqli_close($mysqli);
+	}//end of if-else
+	
+	//get count of all other reports for the user
+	//this query would get the message notifications
+	include('dbConnect.php');
+	//get comment report notifications
+	if($stmt=mysqli_prepare($mysqli, 
+	"SELECT COUNT(tblcommentreport.reportID) AS Comment
+	FROM tblcommentreport")){
+		
+		mysqli_stmt_execute($stmt);
+		
+		//get results
+		$result=mysqli_stmt_get_result($stmt);
+		
+		while($row=mysqli_fetch_array($result))
+		{
+			
+		  $commentReport .= '
+		  <strong>'.$row["Comment"].' new comments have been reported and are in need of addressing.</strong><br />
+		  ';
+	   
+		}//end of while loop
+		mysqli_stmt_close($stmt);
+	}//end of stmt
+	
+	//get message report notifications
+	if($stmt2=mysqli_prepare($mysqli, 
+	"SELECT COUNT(tblmessagereport.reportID) AS Message
+	FROM tblmessagereport")){
+		
+		mysqli_stmt_execute($stmt2);
+		
+		//get results
+		$result=mysqli_stmt_get_result($stmt2);
+		
+		while($row=mysqli_fetch_array($result))
+		{
+			
+		  $messageReport .= '
+		  <strong>'.$row["Message"].' new messages have been reported and are in need of addressing.</strong><br />
+		  ';
+	   
+		}//end of while loop
+		mysqli_stmt_close($stmt2);
+	}//end of stmt
+	mysqli_close($mysqli);
+	
+	//this is for phpmailer
+	$mail = new PHPMailer(true);
+	
+	/*fam look, this code works as is and IT ONLY WORKS WITH GMAIL. 
+	If you need to edit it, look up the documentation for PHPMailer first, they have a github here: 
+	https://github.com/PHPMailer/PHPMailer
+	
+	btw this goes without saying, but the code below ain't mine.
+	*/
+	try{
+		//server settings
+		$mail->isSMTP();
+		$mail->SMTPOptions = array(
+		'ssl' => array(
+		'verify_peer' => false,
+		'verify_peer_name' => false,
+		'allow_self_signed' => true
+		)
+		);
+		//$mail->SMTPDebug = SMTP::DEBUG_SERVER;
+		$mail->Host = 'smtp.gmail.com';
+		$mail->Port = '587';
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+		$mail->SMTPAuth = true;
+		$mail->Username='ewsdgroup2018@gmail.com';//this is the sending email
+		$mail->Password= 'EWSD2018';//well, password is password
+		$mail->SetFrom('no-reply@Sincerely.com');
+		$mail->AddAddress('rys19@live.com');
+		//content
+		$mail->isHTML();
+		$mail->Subject='New report submitted by '.$uName;
+		$mail->Body= 'Hello Jimmy2, 
+			Please be advised that you have received a new report from '.$uName.':
+			<br/>
+			<b>Reported User:</b> ' .$sender.
+			'<br/> 
+			<b>Reported Content:</b> '.$content.
+			'</br>
+			<b>Report Reason:</b> ' .$reason.
+			'<br/>
+			<b>Date Sent:</b> ' .$date.
+			'<br/>
+			<b>Additional Info:</b><br/>'.$commentReport.'<br/>'.$messageReport.'<br/>
+			
+			Kind Regards, <br/>
+			Email Bot (PHPMailer)';
+		
+		//recipient
+		
+		
+		$mail->Send();
+		$success="Report made successfully! The admins will attend to this matter as soon as possible! You will be returned to the homepage shortly.";
+		header("refresh:2; url=index.php" );
+	} catch (Exception $e) {
+		$count++;
+		$feedback.= "<br/>Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+	}
+}//end of sendEmail
 
 ?>
 
@@ -218,21 +393,9 @@ if(isset($_POST['reportMessage'])){
           <li class="active"><a href="index.php">Home</a></li>
 
           <li class="drop-down"><a href="#">About</a>
-           <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+            <ul>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 		  
@@ -347,6 +510,9 @@ if(isset($_POST['reportMessage'])){
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_bind_result($stmt, $commentContent, $commentDate, $commentUser, $commentPicture, $commentUserID);
 					if(mysqli_stmt_fetch($stmt)){
+						
+						$commentDate=date('h:i:s a m/d/Y', strtotime($commentDate));
+						$commentContent = str_ireplace(array("\r","\n",'\r','\n'),'', $commentContent);
 						echo"
 						
 						<h4>Reported Comment:</h4>
@@ -444,6 +610,9 @@ if(isset($_POST['reportMessage'])){
 					mysqli_stmt_bind_result($stmt, $mSender, $mSenderName, $mContent, $mDate, $mTitle);
 					
 					if(mysqli_stmt_fetch($stmt)){
+						$mDate=date('h:i:s a m/d/Y', strtotime($mDate));
+						$mContent = str_ireplace(array("\r","\n",'\r','\n'),'', $mContent);
+						
 						echo"
 						
 						
@@ -529,27 +698,24 @@ if(isset($_POST['reportMessage'])){
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+         <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

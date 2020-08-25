@@ -1,7 +1,8 @@
 <?php
+ob_start();
 /*So, this is a really long, complex page used allow a user to edit their blogpost.*/
 	//quill rendering
-	namespace DBlackborough\Quill;
+	//namespace DBlackborough\Quill;
 	//session management
 	session_start();
 	if($_SESSION['uName']==""){
@@ -10,7 +11,7 @@
 		
 	}
 	
-	require_once 'vendor/autoload.php';
+	//require_once 'vendor/autoload.php';
 	
 	//set up all variables to be used
 	$feedback="";
@@ -80,55 +81,33 @@
 	if(isset($_POST['bodyEdit'])){
 		global $postID;
 		
-		$quill_json=$_POST['quill_json'];
+		$body=$_POST['body'];
 		
 		//validate new body
-		if($quill_json=="" || $quill_json==null){
+		if($body=="" || $body==null){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
-		}else if(strlen($quill_json)<100){
+		}else if(strlen($body)<100){
 			$count++;
 			$feedback.="<br/> Your post cannot be less than 100 characters.";
-		}else if($quill_json=='{"ops":[{"insert":"\n"}]}'){
-			$count++;
-			$feedback.="<br/> Your post cannot be empty.";
-		}else if(strlen($quill_json)>10000){
+		}else if(strlen($body)>10000){
 			$count++;
 			$feedback.="<br/> Your post cannot be more than 10,000 characters.";
 		}
 		
 		if($count==0){
-			//magic code that renders the quill delta into readable text
-			try {
-				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
-				$result = $quill->render();
-			} catch (\Exception $e) {
-				echo $e->getMessage();
-			}
-			
-			//revalidate body
-			if($result=="" || $result==null){
-				$count++;
-				$feedback.="<br/> Your post cannot be empty.";
-			}else if(strlen($result)<100){
-				$count++;
-				$feedback.="<br/> Your post cannot be less than 100 characters.";
-			}else if($result=='{"ops":[{"insert":"\n"}]}'){
-				$count++;
-				$feedback.="<br/> Your post cannot be empty.";
-			}
 
 			//sanitize
 			include('dbConnect.php');
 			
 			//sanitize data going into MySQL
-			$result= mysqli_real_escape_string($mysqli, $result);
+			$body= mysqli_real_escape_string($mysqli, $body);
 			
 			if($count==0){
 				if($stmt=mysqli_prepare($mysqli, 
 				"UPDATE tblblogpost SET tblblogpost.content=? WHERE tblblogpost.postID=?")){
 					//bind parameters
-					mysqli_stmt_bind_param($stmt, "si", $result, $postID);
+					mysqli_stmt_bind_param($stmt, "si", $body, $postID);
 					
 					//execute
 					if(mysqli_stmt_execute($stmt)){
@@ -587,10 +566,8 @@
   <link href="assets/css/style.css" rel="stylesheet">
   <link href="assets/css/custom.css" rel="stylesheet">
   
-  <!--Quill Link-->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+   <!--ckeditor Link-->
+   <script src="ckeditor/ckeditor.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -620,20 +597,8 @@
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -811,6 +776,7 @@
 			
 			//fetch results
 			if(mysqli_stmt_fetch($stmt)){
+				$content = str_ireplace(array("\r","\n",'\r','\n'),'', $content);
 				echo"
 					<div class='container'>
 
@@ -852,7 +818,7 @@
 								</ul>
 							  </div>
 
-							  <div class='entry-content'>
+							  <div class='entry-content wrapword'>
 							   
 								$content
 
@@ -904,13 +870,13 @@
 	  
 		<div class="form-group"> 
 				<label class="control-label col-sm-2"><h5>Current Title:</h5></label>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 				<input type="text" class="form-control" name="newTitle" id="newTitle"
 				aria-labelledby="new title" value="<?php global $heading; echo $heading;?>"/> 
 			 </div>
 		</div>
 		
-		<div class="col-sm-10">
+		<div class="col-sm-12">
 			<input type="submit" class="btn btn-outline-primary form-control sincerely" name="titleEdit" value="Edit"/>
 		</div>
 	  
@@ -924,17 +890,16 @@
 	  
 		<div class="form-group"> 
 				<label class="control-label col-sm-2"><h5>Current Body:</h5></label>
-				<p class="error col-sm-10">Please note that with editing the body of your blogpost, any formatting previously applied is lost and may need to be reapplied.</p>
-			 	<div class="col-sm-10">
-					<div id="editor">
+				<p class="error col-sm-12">Please note that with editing the body of your blogpost, any formatting previously applied is lost and may need to be reapplied.</p>
+			 	<div class="col-sm-12">
 						
-					</div>
-					<!--This is needed to store the information that the user enters into the rich text area.-->
-					<input type="hidden" id="quill_json" name="quill_json" aria-labelledby="blog writing area"/>
-				</div>
+					<small>You can use emotes when you're making your post, click on the right, next to the omega (Ω) symbol.</small>
+					<!--This is needed for the rich text area-->
+					<textarea id="editor" name="body"></textarea>
+
 		</div>
 		
-		<div class="col-sm-10">
+		<div class="col-sm-12">
 			<input type="submit" class="btn btn-outline-primary form-control sincerely" name="bodyEdit" value="Edit"/>
 		</div>
 	  
@@ -952,7 +917,7 @@
 				<?php
 				global $image;
 				if(count($image)!=0){
-					echo"<div class='row col-sm-10'>";
+					echo"<div class='row col-sm-12'>";
 					for($i=0; $i<count($image); $i++){
 						if($image[$i]!=null ||$image[$i]!="" ){
 							echo" <img src='blogImages/$image[$i]' class='img-fluid col-sm-5' width='200' height='100'>";
@@ -968,7 +933,7 @@
 				
 				?>
 				<br/>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 				<!--Code Adapted from:http://www.javascripthive.info/php/php-multiple-files-upload-validation/-->
 				<!--Accessed on: 26/11/2017-->
 				<input type="file" class="form-control" name="fileUpload[]" aria-labelledby="Select the images you want to upload" multiple/> 
@@ -994,7 +959,7 @@
 			</div>
 		</div>
 		
-		<div class="col-sm-10">
+		<div class="col-sm-12">
 			<input type="submit" class="btn btn-outline-primary form-control sincerely" name="imageUpload" value="Upload Images (2 Max)"/>
 			<br/>
 			<br/>
@@ -1009,12 +974,12 @@
 	  <form class="horizontal" method="post" action="editPost.php">
 			<div class="form-group"> 
 				<label class="control-label col-sm-2"><h5>Tags:</h5></label>
-				<div class="col-sm-10">You can tag your blog however you like, please separate tags with a comma and only
+				<div class="col-sm-12">You can tag your blog however you like, please separate tags with a comma and only
 				choose tags relevant to your post! (Max tags: 5)</div>
 				<br/>
 				<?php global $tags; echo"<div class='container'> <h6>Current Tags:</h6>"; for($e=0; $e<count($tags); $e++){echo "$tags[$e]  ,";}echo"</div>";?>
 				<br/>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 				<input type="text" class="form-control" name="newTags" id="newTags"
 				aria-labelledby="new tags"/> 
 			 </div>
@@ -1029,7 +994,7 @@
 				?>
 			 
 		</div>
-		<div class="col-sm-10">
+		<div class="col-sm-12">
 			<input type="submit" class="btn btn-outline-primary form-control sincerely" name="tagEdit" value="Edit"/>
 		</div>
 		
@@ -1059,36 +1024,12 @@
   <!-- Initialize Quill editor -->
 		<script type="text/javascript">
 		
-		var x = "<?php echo"$content"?>"; 
+		var x = "<?php echo $content ?>"; 
 		
-		//These are the options for the toolbar
-			var toolbarOptions = [
-			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-
-			  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript                
-
-			  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-			  ['clean']                                         // remove formatting button
-			];
-		
-			//this creates the actual rich text area
-			var quill = new Quill('#editor', {
-			  modules: {
-				toolbar: toolbarOptions
-			  },
-			  theme: 'snow'
-			});	
-			//this sets the blogpost body into the quill text area
-			quill.setText(x);
+		CKEDITOR.replace( 'editor' );
 			
-		  //this gets the data from the rich text area
-		  $('#target').submit(function() {
-			$('#quill_json').val(JSON.stringify(quill.getContents()));
-			return true;
-		});
+		//this sets the text inside of the editor
+		CKEDITOR.instances['editor'].setData(x);
 		  
 		</script>
 

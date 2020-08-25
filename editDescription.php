@@ -1,7 +1,6 @@
 <?php
+ob_start();
 /*this page is used to allow a user to edit their profile details*/
-	namespace DBlackborough\Quill;
-	
 	//session checker
 	session_start();
 	if($_SESSION['uName']==""){
@@ -22,6 +21,10 @@
 	
 	//get userID from session and pull the user's data from the database to populate fields
 	if(isset($_SESSION['uID'])){
+		global $description;
+		global $email;
+		global $picture;
+		
 		$uID= $_SESSION['uID'];
 		
 		//get database connection
@@ -93,41 +96,34 @@
 	//this isset handles the description insert into the database
 	if(isset($_POST['description'])){
 		//get delta
-		$quill_json=$_POST['quill_json'];
+		$body=$_POST['body'];
 		
 		//validate code so it fits the format
-		if($quill_json=="" || $quill_json==null){
+		if($body=="" || $body==null){
 			$count++;
 			$feedback.="<br/> Your post cannot be empty.";
-		}else if(strlen($quill_json)>2000){
+		}else if(strlen($body)>2000){
 			$count++;
 			$feedback.="<br/> Your post cannot be more than 2000 characters.";
-		}else if($quill_json=='{"ops":[{"insert":"\n"}]}'){
+		}else if($body=='{"ops":[{"insert":"\n"}]}'){
 			$count++;
 			$feedback.="<br/> Your new description cannot be empty.";
 		}	
 		
 		//santize data so there are no scary things in it
-		//sanitize($quill_json);
+		//sanitize($body);
 		
-		escapeString($quill_json);
+		escapeString($body);
 		
 		//this is a check done to ensure that there are no errors, if there are errors then the render/insert won't run
 		if($count==0){
-			//magic code that renders the quill delta into readable text
-			try {
-				$quill = new \DBlackborough\Quill\Render($quill_json, 'HTML');
-				$result = $quill->render();
-			} catch (\Exception $e) {
-				echo $e->getMessage();
-			}
 			
 			//other code that takes the entered text and turns it into HTML markup
-			$markupText = htmlentities($result);
+			$markupText = htmlentities($body);
 			
 			//store the html in the database
 			
-			insert($result, $uID);
+			insert($body, $uID);
 		}//end of count
 	}//end of isset
 	
@@ -165,7 +161,7 @@
 				//execute
 				mysqli_stmt_execute($stmt);
 				
-				//bind results
+				//bind ss
 				mysqli_stmt_bind_result($stmt, $pictureID);
 				
 				if(mysqli_stmt_fetch($stmt)){
@@ -262,7 +258,7 @@
 		
 		//make stmt
 		if($stmt=mysqli_prepare($mysqli, 
-		"UPDATE tblUser SET description=? WHERE userID=?")){
+		"UPDATE tbluser SET description=? WHERE userID=?")){
 			//bind parameters to SQL Object
 			mysqli_stmt_bind_param($stmt,"si", $r, $uID);
 			
@@ -337,9 +333,7 @@
   <link href="assets/css/custom.css" rel="stylesheet">
   
   <!--Quill Link-->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+  <script src="ckeditor/ckeditor.js"></script>
 
   <!-- =======================================================
   * Template Name: Eterna - v2.0.0
@@ -369,20 +363,8 @@
 
            <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-			  <li><a href="services.html">Services</a></li>
-			  <li><a href="contact.html">Contact</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
@@ -479,13 +461,13 @@
 		
 			<div class="form-group">
 				<label class="control-label col-sm-3"><h4>Contact Email:</h4></label>
-				<div class="col-sm-10">
+				<div class="col-sm-12">
 				<input type="text" class="form-control" name="uEmail" id="uEmail" aria-labelledby="email" value="<?php global $email; echo $email;?>"/> 
 			 </div>
 			 <span class="error" id="email_err"></span>
 			</div>
 		
-			<div class="col-sm-10">
+			<div class="col-sm-12">
 				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="email" value="Submit"/>
 			</div>
 		</form>
@@ -498,15 +480,14 @@
 			<div class="form-group">
 				<label class="control-label col-sm-3"><h4>Edit Description: <br/>(2000 character limit)</h4></label>
 				
-				<div class="col-sm-10">
-					<div id="editor">
-						
-					</div>
+				<div class="col-sm-12">
+				<small>You can use emotes when you're making your post, click on the right, next to the omega (Ω) symbol.</small>
+				<!--The id for the text area has to be 'editor' for the script to recognize it-->
+					<textarea id="editor" name="body"></textarea>
 					<!--This is needed to store the information that the user enters into the rich text area.-->
-					<input type="hidden" id="quill_json" name="quill_json" aria-labelledby="description writing area"/>
 				</div>
 			</div>
-			<div class="col-sm-10">
+			<div class="col-sm-12">
 				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="description" value="Submit" onClick="return valEmail();"/>
 			</div>
 		
@@ -517,7 +498,7 @@
 		
 			<div class="form-group"> 
 				<label class="control-label col-sm-4"><h4>Upload New Avatar:</h4></label>
-				<div class="col-sm-10">
+				<div class="col-sm-12">
 					<p>Please be responsible with the image you upload. If your image is deemed inappropriate whereby it is related to: pornography, 
 					substance abuse, general abuse, or harmful in any way, the administrators would address this.</p>
 				</div>
@@ -533,7 +514,7 @@
 				
 				?>
 				<br/>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 				<!--Code Adapted from:http://www.javascripthive.info/php/php-multiple-files-upload-validation/-->
 				<!--Accessed on: 26/11/2017-->
 				<input type="file" class="form-control" name="fileUpload" aria-labelledby="Select the image you want to upload as your avatar" multiple/> 
@@ -541,57 +522,32 @@
 			 </div>
 			</div>
 			
-			<div class="col-sm-10">
+			<div class="col-sm-12">
 				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="upload" value="Upload"/>
 			</div>
 		
 		</form>
 		<br/>
-		<div class="col-sm-10">
+		<div class="col-sm-12">
 			<a href='userAccount.php'><button class="btn btn-outline-primary form-control sincerely">Return to Account</button></a>
 		</div>
 	  </div>
 	  
-	  <?php
 
+	  <?php
+	  
 		global $description;
-		$description= strip_tags($description);
 	  
 	  ?>
-	  
 	  <!-- Initialize Quill editor -->
 		<script>
 		
-		var x = "<?php echo"$description"?>"; 
+		var x="<?php echo $description ?>";
 		
-		//These are the options for the toolbar
-			var toolbarOptions = [
-			  ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-
-			  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript                
-
-			  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-			  ['clean']                                         // remove formatting button
-			];
+		CKEDITOR.replace( 'editor' );
 		
-			//this creates the actual rich text area
-			var quill = new Quill('#editor', {
-			  modules: {
-				toolbar: toolbarOptions
-			  },
-			  theme: 'snow'
-			});	
-			//this sets the user's description into the quill.js textarea
-			quill.setText(x);
-			
-		  //this gets the data from the rich text area
-		  $('#target').submit(function() {
-			$('#quill_json').val(JSON.stringify(quill.getContents()));
-			return true;
-		});
+		//this sets the text inside of the editor
+		CKEDITOR.instances['editor'].setData(x);
 		
 		//This is some neat little code to prevent a form resubmission if you reload the page
 		/*
@@ -619,25 +575,22 @@
 
           <div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
           <div class="col-lg-3 col-md-6 footer-contact">
             <h4>Contact Us</h4>
             <p>
-              A108 Adam Street <br>
-              New York, NY 535022<br>
-              United States <br><br>
-              <strong>Phone:</strong> +1 5589 55488 55<br>
-              <strong>Email:</strong> info@example.com<br>
+             Gulf View Medical Centre <br>
+             715-716 Mc Connie St<br>
+              Trinidad and Tobago <br><br>
+              <strong>Phone:</strong> 868-283-HELP(4357) / <br/>868-798-4261<br>
+              <strong>Email:</strong> theracoconsultants@gmail.com<br>
             </p>
 
           </div>

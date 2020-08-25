@@ -1,6 +1,7 @@
 <?php 
 /*This page is used to show a preview of a user's profile*/
 	session_start();
+	ob_start();
 	$count=0;
 	$feedback="";
 	
@@ -76,25 +77,14 @@
         <ul>
           <li class="active"><a href="index.php">Home</a></li>
 
-          <li class="drop-down"><a href="#">About</a>
+         <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="about.html">About Us</a></li>
-              <li><a href="team.html">Team</a></li>
-
-              <li class="drop-down"><a href="#">Drop Down 2</a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
+              <li><a href="admin.php">About Us</a></li>
+			  <li><a href="contact.php">Contact</a></li>
             </ul>
           </li>
 
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
+
              <?php
 			if(isset($_SESSION['uName'])){
 				if(($_SESSION['position']==1)){
@@ -197,7 +187,7 @@
 								//Description
 								echo"<br/><h4>Description:</h4>";
 								if($description!=null || $description!=""){					
-									echo"<h5>$description</h5></div>";
+									echo"<h5 class='wrapword'>$description</h5></div>";
 								}else{
 									echo"<h5>This user has not set a description.</h5></div>";
 								}
@@ -221,7 +211,10 @@
 			//close connection
 			mysqli_close($mysqli);
 			//this is a link that would allow a user to start a conversation with a user from their profile
-			echo"<a href='createMessage.php?user=$viewedUser'><button class='btn btn-outline-primary sincerely col-sm-12'>Message this User</button></a>";
+			if($_SESSION['uID']!= $userID){
+				echo"<a href='createMessage.php?user=$viewedUser'><button class='btn btn-outline-primary sincerely col-sm-12'>Message this User</button></a>";
+			
+			}
 			
 			echo"<br/>";
 			echo"<br/>";
@@ -257,7 +250,7 @@
 					<thead>
 						<tr>
 							<th><h5>Heading</h5></th>
-							<th><h5>Body</h5></th>
+							<th><h5>Body Preview</h5></th>
 							<th><h5>Date/Time</h5></th>
 							<th></th>
 						</tr>
@@ -267,6 +260,11 @@
 					
 					//fetch and display results
 					while (mysqli_stmt_fetch($stmt)){
+						 $heading=substr($heading,0,50);
+					        $content=substr($content,0,50);
+					        $content=strip_tags($content);
+					    	$content = str_ireplace(array("\r","\n",'\r','\n'),'', $content);
+							$postDate=date('h:i:s a m/d/Y', strtotime($postDate));
 						
 						if($status==1){
 							echo"
