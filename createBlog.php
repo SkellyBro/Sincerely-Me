@@ -9,9 +9,7 @@ ob_start();
 	//custom session checker to ensure that user is logged in, as both bloggers and admins can make use of the same page
 	session_start();
 	if($_SESSION['uName']==""){
-		
-		Header("Location:login.php?feedback=You must be logged in to access this page...");
-		
+		Header("Location:login.php?feedback=You must create an account to access this page! You can register <a href='registration.php'>here!</a>");
 	}
 	//load stuff for the Quill rendering & PHPMailer
 	require_once 'vendor/autoload.php';

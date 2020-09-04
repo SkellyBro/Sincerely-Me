@@ -293,7 +293,7 @@ ob_start();
 		
 			<div class="form-group"> 
 				<label class="control-label col-sm-2">Username:</label>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 
 				<input type="text" class="form-control" name="uName" id="uName" aria-labelledby="username"/> 
 			 </div>
@@ -302,14 +302,14 @@ ob_start();
 			
 			<div class="form-group"> 
 				<label class="control-label col-sm-2">Password:</label>
-			 <div class="col-sm-10">
+			 <div class="col-sm-12">
 
 				<input type="password" class="form-control" name="pass" id="pass" aria-labelledby="password"/> 
 			 </div>
 			 <span class="error" id="pass_err"></span>
 			</div>
 			
-			<div class="col-sm-10">
+			<div class="col-sm-12">
 				<input type="submit" class="btn btn-outline-primary form-control sincerely" name="submit" value="Login" onClick="return valLog();"/>
 			</div>
 		</form>

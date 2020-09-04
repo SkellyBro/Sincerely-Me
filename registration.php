@@ -488,7 +488,7 @@ ob_start();
 
 			<p>For any Problems with registration or Technical Issues, </p>
 
-			<p>Contact an Admin through our contact form. <a href="contact.html">Here.</a></p>
+			<p>Contact an Admin through our contact form. <a href="contact.php">Here.</a></p>
 			
 			<br>
 			<br>

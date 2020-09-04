@@ -231,6 +231,12 @@ $feedback="";
         <div class="row">
 
           <div class="col-lg-8 entries">
+
+			<article class='entry'>
+				<div>
+				<a href='createBlog.php'><button type='button' class='btn btn-outline-primary form-control sincerely'><h5>Create Blogpost</h5></button></a>
+				</div>
+			</article>
 		  
 		  <?php
 		  //display notifications

@@ -128,7 +128,7 @@ require_once 'vendor/autoload.php';
 								//$recPos=2 is an admin, if the user is an admin then the sendEmail function is run to send the admin a copy of the message via email
 							}else if($recPos==2){
 								//send email to admin
-								sendEmail($uID, $date, $title, $result, $recEmail, $recipient);
+								sendEmail($uID, $date, $title, $body, $recEmail, $recipient);
 							}
 							
 						}else{
@@ -192,7 +192,7 @@ require_once 'vendor/autoload.php';
 	* $uID is the sender's ID 
 	* $date is the date the message was sent
 	* $title is the title of the message
-	* $message is the message to be sent (this was called $result in the isset)
+	* $message is the message to be sent (this was called $body in the isset)
 	* $recEmail is the email of the recipient of this email
 	* $recipient is the name of the person this email is going to
 	*/
