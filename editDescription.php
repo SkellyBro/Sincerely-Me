@@ -70,6 +70,8 @@ ob_start();
 		//sanitize 
 		sanitize($email);
 		
+		//check to ensure that email doesn't already exist in the system. 
+		checkEmail($email);
 		
 		if($count==0){		
 			//insert email
@@ -300,6 +302,34 @@ ob_start();
 		escapeString($jText);
 		
 	}//end of sanitize
+
+	/**This function checks the entered email against the database to ensure that there are no duplicates
+	 * $email refers to the email entered by the user
+	 */
+	function checkEmail($email){
+		global $count;
+		global $feedback;
+
+		include('dbConnect.php');
+
+		if($stmt=mysqli_prepare($mysqli, "SELECT tbluser.userID FROM tbluser WHERE tbluser.email=?")){
+			//bind param
+			mysqli_stmt_bind_param($stmt, 's', $email);
+
+			//execute
+			mysqli_stmt_execute($stmt);
+
+			//echo results of query
+			if(mysqli_stmt_fetch($stmt))
+			{	 
+				$count++;
+				$feedback.="</br>This email already exists in our system.";
+				return false;
+			}else{
+				return true;
+			}//end of if-else
+		}
+	}//end of checkEmail
 
 ?>
 <!DOCTYPE html>
