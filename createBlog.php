@@ -451,7 +451,7 @@ ob_start();
 			$mail->Username='ewsdgroup2018@gmail.com';//this is the sending email
 			$mail->Password= 'EWSD2018';//well, password is the password for the gmail account
 			$mail->SetFrom('no-reply@Sincerely.com');
-			$mail->AddAddress('rys19@live.com');
+			$mail->AddAddress('theracoconsultants@gmail.com');
 			//content
 			$mail->isHTML();
 			$mail->Subject='Blogpost Confirmation Required';

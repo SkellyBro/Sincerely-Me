@@ -176,7 +176,7 @@ require_once 'vendor/autoload.php';
 			
 			mysqli_stmt_execute($stmt);
 			
-			mysqli_stmt_bind_result($stmt, $recipientID, $recPos, $recEmail);
+			mysqli_stmt_bind_result($stmt, $recipientID, $recPos);
 			
 			if(mysqli_stmt_fetch($stmt)){
 				//user found!
@@ -196,7 +196,7 @@ require_once 'vendor/autoload.php';
 	* $recEmail is the email of the recipient of this email
 	* $recipient is the name of the person this email is going to
 	*/
-	function sendEmail($uID, $date, $title, $message, $recEmail, $recipient){
+	function sendEmail($uID, $date, $title, $message, $recipient){
 		global $feedback;
 		global $count;
 		global $success;
@@ -234,7 +234,7 @@ require_once 'vendor/autoload.php';
 			$mail->Username='ewsdgroup2018@gmail.com';//this is the sending email
 			$mail->Password= 'EWSD2018';//well, password is password
 			$mail->SetFrom('no-reply@Sincerely.com');
-			$mail->AddAddress($recEmail);
+			$mail->AddAddress('theracoconsultants@gmail.com');
 			//content
 			$mail->isHTML();
 			$mail->Subject='New Message from '.$uName;

@@ -6,6 +6,10 @@ $success="";
 $feedback="";
 
 //do a get request to get the user's ID via the email.
+if(isset($_GET['uID'])){
+  $uID=$_GET['uID'];
+  $uN=$_GET['uN'];
+}
 
 if(isset($_POST['submit'])){
     $p=$_POST['pass'];
@@ -33,10 +37,35 @@ if(isset($_POST['submit'])){
         $count++;
         $feedback.="<br/> Your passwords are not identical."; 
     }//end of confirm password validation
+
+    //sanitize
+    $pass= filter_var($pass, FILTER_SANITIZE_STRING);
+		
+		//include escape string function here, this uses the mysqli escape string to prevent special characters from being entered into the db
+		
+		//include database connections
+		include('dbConnect.php');
+		
+		//sanitize data going into MySQL
+		$pass= mysqli_real_escape_string($mysqli, $pass);
         
     if($count==0){
         include('dbConnect.php');
         //do update here
+
+        if($stmt=mysqli_prepare($mysqli, "UPDATE tbluser SET tbluser.password=? WHERE tbluser.userId=?")){
+           mysqli_stmt_bind_param($stmt, 's', $pass, $uID);
+           
+           if(mysqli_stmt_execute($stmt)){
+            $success="Password changed successfully! You will be redirected to the login page shortly!";
+            header("refresh:3; url=login.php" );
+           }else{
+             $count++;
+             $feedback.="Password could not be changed, please contact an administrator for assistance.";
+           }
+
+        }
+
     }
 
 }//end of submit
@@ -191,13 +220,18 @@ if(isset($_POST['submit'])){
 				 echo "$success
 				   </div>";
             }//end of if statement for error
+
+            global $uN; 
+
+            echo"<h4>Password change for: $uN</h4>";
+
         ?>
 
       
             <form class='horizontal' method='post' action='rpassword.php' onsubmit="return valPass(this)">
                 <div class="form-group"> 
                     <label class="control-label col-sm-2">Password:</label>
-                    <div class="col-sm-10">
+                    <div class="col-sm-12">
 
                     <input type="password" class="form-control" name="pass" id="pass" aria-labelledby="password"/> 
                     </div>
@@ -206,14 +240,14 @@ if(isset($_POST['submit'])){
                 
                 <div class="form-group"> 
                     <label class="control-label col-sm-2">Confirm Password:</label>
-                    <div class="col-sm-10">
+                    <div class="col-sm-12">
 
                     <input type="password" class="form-control" name="cPass" id="cPass" aria-labelledby="confirm password"/> 
                     </div>
                     <span class="error" id="cpass_err"></span>
                 </div>
 
-                <div class='col-sm-10'>
+                <div class='col-sm-12'>
                   <input type='submit' name='submit' value='submit' class="btn btn-outline-primary form-control sincerely" onClick="return valPass();"/>
                 </div>
             </form>

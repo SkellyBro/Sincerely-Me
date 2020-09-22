@@ -47,8 +47,9 @@ $feedback="";
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
   <title>Sincerely, Me</title>
-  <meta content="" name="descriptison">
-  <meta content="" name="keywords">
+  <meta  content="Sincerely, Me is a free, online, secure blogging application, a group journal where you and many others 
+  can vent, get advice from others and gain input from a licenced therapist!" >
+  <meta name="keywords" content="blogging, trinidad and tobago, online, therapy, therapist, group journal, online blog, online therapy blog, venting blog, online venting blog, trinidad, sincerely, me, sincerelyme, sincerelyme-tt, sincerely, sincerelymett, sincerely me tt" >
 
   <!-- Favicons -->
   <link href="assets/img/favicon.png" rel="icon">

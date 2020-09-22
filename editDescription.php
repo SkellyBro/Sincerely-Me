@@ -45,10 +45,102 @@ ob_start();
 		}//end of stmt
 		mysqli_close($mysqli);
 	}//end of isset
+
+	/** this isset handles the password reset for the user's account
+	 * $currentPass refers to the user's current password
+	 * $newPass refers to the user's new, chosen password
+	 * $confirmPass refers to the re-entry of $newPass for confirmation purposes
+	 */
+	if(isset($_POST['password'])){
+		global $uID;
+		//get user information
+		$currentPass=$_POST['pass'];
+		$newPass=$_POST['nPassword'];
+		$confirmPass=$_POST['cPassword'];
+
+		//validate
+		if($currentPass=="" || $currentPass==null){
+			$count++;
+			$feedback.="<br/> You have not entered your current password!";
+		}else if(strlen($currentPass)<8){
+			$count++;
+			$feedback.="<br/> Your password cannot be less than 8 characters!";
+		}
+
+		if($newPass=="" || $newPass==null){
+			$count++;
+			$feedback.="<br/> You have not entered your new password!";
+		}else if(strlen($newPass)<8){
+			$count++;
+			$feedback.="<br/> Your password cannot be less than 8 characters!";
+		}
+
+		if($confirmPass=="" || $confirmPass==null){
+			$count++;
+			$feedback.="<br/> Please confirm your password!";
+		}else if(strlen($confirmPass)<8){
+			$count++;
+			$feedback.="<br/> Your password cannot be less than 8 characters!";
+		}
+
+		if($count==0){
+			//sanitize entered passwords
+			sanitize($currentPass);
+			sanitize($newPass);
+
+			$update=false;
+
+			//check the current password against the database
+			include('dbConnect.php');
+
+
+			if($stmt=mysqli_prepare($mysqli, "SELECT tbluser.password FROM tbluser WHERE tbluser.userID=?")){
+				//bind param
+				mysqli_stmt_bind_param($stmt, "s", $currentPass);
+
+				//execute
+				mysqli_stmt_execute($stmt);
+
+				//echo results of query
+				if(mysqli_stmt_fetch($stmt))
+				{	 
+					$count++;
+					$feedback.="</br>Your current password is incorrect.";
+					$update= false;
+				}else{
+					$update=true;
+				}//end of if-else
+			}//end of stmt
+
+			if($update){
+				$encrypted= md5($newPass);
+
+				if($stmt=mysqli_prepare($mysqli,"UPDATE tbluser SET tbluser.password=? WHERE tbluser.userID=?")){
+				//bind parameters
+				mysqli_stmt_bind_param($stmt, "si", $encrypted, $uID);
+				
+				//execute
+				if(mysqli_stmt_execute($stmt)){
+					$success.="Password successfully updated!";
+				}else{
+					$count++;
+					$feedback.="<br/> Password could not be updated, an error occured, please contact a technician for assistance.";
+				}
+				mysqli_stmt_close($stmt);
+				}//end of stmt
+				mysqli_close($mysqli);
+			}//end of update
+
+		}//end of count
+
+
+	}//end of password isset
 	
 	
 	//this isset handles the email insert into the database
 	if(isset($_POST['email'])){
+		global $uID;
+
 		//get user information
 		$email=$_POST['uEmail'];
 		
@@ -140,6 +232,7 @@ ob_start();
 			$allowed =  array('docx', 'doc', 'pdf', 'jpeg', 'png', 'jpg', 'bmp', 'pjpeg', 'JPEG', 'PNG', 'JPG', 'BMP', 'PJPEG', 'PDF', 'DOCX', 'PPTX');	
 
 			$path = $_FILES['fileUpload']['name'];
+			
 			$ext = pathinfo($path, PATHINFO_EXTENSION);
 			if(!in_array($ext,$allowed)){
 					$feedback.="<br/> Document uploaded is not of type: .jpg, .jpeg, .bmp, .pjpeg, .png, .pdf, .doc or .docx";
@@ -278,18 +371,6 @@ ob_start();
 		
 	}//end of insert
 	
-	/*function to escape any special characters from entered user data
-	*$val is the variable being escaped
-	*/
-	function escapeString($val){
-
-		//include database connections
-		include('dbConnect.php');
-		
-		//sanitize data going into MySQL
-		$val= mysqli_real_escape_string($mysqli, $val);
-		return $val;
-	}//end of escapeString
 	
 	/*function to sanitize data with mysqli functions 
 	*jText is the markup text
@@ -299,7 +380,11 @@ ob_start();
 		$jText= filter_var($jText, FILTER_SANITIZE_STRING); 
 		
 		//include escape string function here, this uses the mysqli escape string to prevent special characters from being entered into the db
-		escapeString($jText);
+		//include database connections
+		include('dbConnect.php');
+		
+		//sanitize data going into MySQL
+		$jText= mysqli_real_escape_string($mysqli, $jText);
 		
 	}//end of sanitize
 
@@ -486,6 +571,40 @@ ob_start();
 			}//end of if statement for error
 
 		?>
+
+		<form class="class-horizontal" action="editDescription.php" method="post" onSubmit="return valPassReset(this)">
+			<label class="control-label col-sm-3"><h4>Change Password:</h4></label>
+				<div class="form-group">
+				<label class="control-label col-sm-12">Current Password:</label>
+					<div class="col-sm-12">
+						<input type="password" class="form-control" name="pass" id="pass" aria-labelledby="password"/> 
+					</div>
+				<span class="error" id="pass_err"></span>
+				</div>
+
+				<div class="form-group">
+				<label class="control-label col-sm-12">New Password:</label>
+					<div class="col-sm-12">
+						<input type="password" class="form-control" name="nPassword" id="nPassword" aria-labelledby="new password"/> 
+					</div>
+				<span class="error" id="npass_err"></span>
+				</div>
+
+				<div class="form-group">
+				<label class="control-label col-sm-12">Confirm New Password:</label>
+					<div class="col-sm-12">
+						<input type="password" class="form-control" name="cPassword" id="cPassword" aria-labelledby="confirm password"/> 
+					</div>
+				<span class="error" id="cpass_err"></span>
+				</div>
+			
+				<div class="col-sm-12">
+					<input type="submit" class="btn btn-outline-primary form-control sincerely" name="password" value="Submit" onClick="return valPassReset();"/>
+				</div>
+			</form>
+		
+			<br/>
+			<hr>
 		
 		<form class="class-horizontal" action="editDescription.php" method="post" onSubmit="return valEmail(this)">
 		
@@ -563,16 +682,21 @@ ob_start();
 		</div>
 	  </div>
 	  
+	  <div id="dom-target" style="display: none;">
+		<?php
+			global $description;
+			echo htmlspecialchars($description); /* You have to escape because the result
+												will not be valid HTML otherwise. */
+		?>
+		</div>
 
-	  <?php
-	  
-		global $description;
-	  
-	  ?>
+
 	  <!-- Initialize Quill editor -->
 		<script>
 		
-		var x="<?php echo $description ?>";
+		var div = document.getElementById("dom-target");
+
+		var x= div.textContent;
 		
 		CKEDITOR.replace( 'editor' );
 		

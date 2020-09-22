@@ -1,4 +1,6 @@
 <?php
+session_start();
+session_destroy();
 ob_start();
 	/*This page handles the login for the site*/
 	if(isset($_POST['submit'])){

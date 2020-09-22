@@ -5,6 +5,8 @@ function valReg(frm){
 	var errorCount=0;
 	
 	var uName= frm.uName.value;
+
+	var email=frm.email.value;
 	
 	var pass=frm.pass.value;
 	
@@ -28,6 +30,23 @@ function valReg(frm){
 		document.getElementById("user_err").innerHTML="Your username cannot be more than 25 characters";
 		errorCount++;
 	}
+
+	//email validation
+	if(email==""){
+		document.getElementById("email_err").innerHTML="You must enter your email address";
+		errorCount++;
+	}
+	
+	/*
+	Code adapted from: https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+	Code Author: rnevius
+	Accessed on: 28 Feb 2019. 
+	*/
+	
+	if(!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email)){
+		document.getElementById("email_err").innerHTML="Email is not in format xyz@xyz.com!";
+		errorCount++;
+	}//end of email validation
 	
 	//password validation
 	if(pass==""){
@@ -282,6 +301,54 @@ function valPass(frm){
 	}
 
 	if(pass != cpass){
+		//display error
+		document.getElementById("cpass_err").innerHTML="Your entered passwords are not equal";
+		errorCount++;
+	}
+	
+	if(errorCount !=0)
+	{
+		return false;
+	}
+}
+
+function valPassReset(frm){
+	var passed=true;
+	var errorCount=0;
+	var pass=frm.pass.value;
+	var npass=frm.nPassword.value;
+	var cpass=frm.cPassword.value;
+	
+	//password validation
+	if(pass==""){
+		//display error
+		document.getElementById("pass_err").innerHTML="Please enter a password.";
+		errorCount++;
+	}else if(pass.length<8){
+		//display error
+		document.getElementById("pass_err").innerHTML="Your password must be more than 8 characters.";
+		errorCount++;
+	}
+
+	//password validation
+	if(npass==""){
+		//display error
+		document.getElementById("npass_err").innerHTML="Please enter a password.";
+		errorCount++;
+	}else if(npass.length<8){
+		//display error
+		document.getElementById("npass_err").innerHTML="Your password must be more than 8 characters.";
+		errorCount++;
+	}
+
+	//confirm password validation
+	if(cpass==""){			
+		//display error
+		document.getElementById("cpass_err").innerHTML="Please re-enter your password.";
+		errorCount++;
+	}
+
+	if(npass != cpass){
 		//display error
 		document.getElementById("cpass_err").innerHTML="Your entered passwords are not equal";
 		errorCount++;

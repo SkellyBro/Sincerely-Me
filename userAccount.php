@@ -484,7 +484,7 @@
 					<input type="hidden" name="page" value="login.php"/>
 					
 					<input type="submit" class="btn btn-outline-primary form-control sincerely" 
-					name="deleteUser" value="Delete Account" onClick="return confirmation();"/>
+					name="deleteUser" value="Delete Account"/>
 				</div>
 			</form>
 		  

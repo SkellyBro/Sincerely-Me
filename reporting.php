@@ -302,7 +302,7 @@ function sendEmail($sender, $date, $reason, $reportedContent, $rType){
 		$mail->Username='ewsdgroup2018@gmail.com';//this is the sending email
 		$mail->Password= 'EWSD2018';//well, password is password
 		$mail->SetFrom('no-reply@Sincerely.com');
-		$mail->AddAddress('rys19@live.com');
+		$mail->AddAddress('theracoconsultants@gmail.com');
 		//content
 		$mail->isHTML();
 		$mail->Subject='New report submitted by '.$uName;

@@ -5,6 +5,7 @@ ob_start();
 	//this isset handles the actual registration
 	if(isset($_POST['submit'])){
 		$uName= $_POST['uName'];
+		$email=$_POST['email'];
 		$pass= $_POST['pass'];
 		$cPass= $_POST['cPass'];
 		$captcha=$_POST['captcha_code'];
@@ -18,38 +19,57 @@ ob_start();
 		$success="";
 		
 		//validate user information
-		validate($uName, $pass, $cPass, $captcha);
+		validate($uName, $email, $pass, $cPass, $captcha);
 		
 		//sanitize information before making insert into database
-		sanitize($uName, $pass);
+		sanitize($uName, $pass, $email);
 		
 		//check username to ensure that it is unique in the database to prevent conflicts
 		usernameCheck($uName);
+		emailCheck($email);
 		
 		//insert into database
 		
 		if($count==0){
 			//this function makes the insert into the database
-			insert($uName, $pass);
+			insert($uName, $pass, $email) ;
 			//this function gets the user's ID for another insert into the blogger table
 			getID($uName);
 			//this function inserts the user's name into the disjointed table
 			insertBlogger($uID);
 		}
 	}//end of isset
-	
-	/*function to escape any special characters from entered user data
-	*$val is the variable being escaped
-	*/
-	function escapeString($val){
 
-		//include database connections
+	/**This function is used to check the user's entered email against the database to prevent duplicates.
+	 * $email refers to the email the user entered into the registration form
+	 */
+	function emailCheck($email){
+		global $feedback;
+		global $count;
+
 		include('dbConnect.php');
-		
-		//sanitize data going into MySQL
-		$val= mysqli_real_escape_string($mysqli, $val);
-		return $val;
-	}//end of escapeString
+
+		if($stmt =mysqli_prepare($mysqli, 
+		"SELECT * FROM tblUser WHERE tblUser.email=?")){
+			//bind entered parameters to mysqli statement
+			 mysqli_stmt_bind_param($stmt, "s", $email);
+			 
+			 //execute the stmt
+			 mysqli_stmt_execute($stmt);
+
+			 //echo results of query
+			 if(mysqli_stmt_fetch($stmt))
+			 {	 
+				 $count++;
+				 $feedback.="</br>Your entered email already exists in our system.";
+				 return false;
+			 }else{
+				 return true;
+			 }//end of if-else
+		mysqli_stmt_close($stmt);
+		}//end of stmt
+		mysqli_close($mysqli);
+	}
 	
 	/*function to get the user's ID for insert into another table
 	*$uName is the user's username. 
@@ -78,7 +98,7 @@ ob_start();
 				return true; 
 			}else{
 				$count++;
-				$feedback.="Error occured with procuring ID, please contact an administrator for assistance";
+				$feedback.="<br/>Error occured with procuring ID, please contact an administrator for assistance";
 				return false; 
 			}//end of if-else 
 			mysqli_stmt_close($stmt);
@@ -90,10 +110,9 @@ ob_start();
 	*$uN is the user's username
 	*$p is the user's password
 	*/
-	function insert($uN, $p){
+	function insert($uN, $p, $e){
 		global $count;
 		global $feedback;
-		global $success; 
 		
 		//create new date object for insert
 		$date=date("Y-m-d");
@@ -108,15 +127,15 @@ ob_start();
 		include('dbConnect.php');
 		
 		if($stmt= mysqli_prepare($mysqli, 
-		"INSERT INTO tblUser(username, password, regDate, position) VALUES(?,?,?,?)")){
+		"INSERT INTO tblUser(username, password, regDate, position, email) VALUES(?,?,?,?,?)")){
 			//bind parameters to SQL Object
-			mysqli_stmt_bind_param($stmt,"sssi", $uN, $encrypted, $date, $pos);
+			mysqli_stmt_bind_param($stmt,"sssis", $uN, $encrypted, $date, $pos, $email);
 			
 			//execute statement and see if successful
 			if(mysqli_stmt_execute($stmt)){
 				return true; 
 			}else{
-				$feedback.="Registration Unsuccessful. Please contact an administrator for assistance!<br/> User insert failed.";
+				$feedback.="<br/>Registration Unsuccessful. Please contact an administrator for assistance!<br/> User insert failed.";
 				$count++;
 				return false;
 			}//end of if-else
@@ -146,7 +165,7 @@ ob_start();
 				$success="Registration Successful! You will be redirected to the login page shortly!";
 				header("refresh:3; url=login.php" ); 
 			}else{
-				$feedback.="Registration Unsuccessful. Please contact an administrator for assistance! <br/> Blogger insert failed";
+				$feedback.="<br/>Registration Unsuccessful. Please contact an administrator for assistance! <br/> Blogger insert failed";
 				$count++;
 				return false;
 			}//end of if-else
@@ -159,16 +178,24 @@ ob_start();
 	*$uN refers to the username
 	*$p refers to the user's password
 	*/
-	function sanitize($uN, $p){
+	function sanitize($uN, $p, $e){
 		//sanitize form data
 		$uN= filter_var($uN, FILTER_SANITIZE_STRING);
 		$p= filter_var($p, FILTER_SANITIZE_STRING);
+		$e= filter_var($e, FILTER_SANITIZE_EMAIL);
 		
 		//include escape string function here, this uses the mysqli escape string to prevent special characters from being entered into the db
-		escapeString($uN);
-		escapeString($p);
+		
+		//include database connections
+		include('dbConnect.php');
+		
+		//sanitize data going into MySQL
+		$uN= mysqli_real_escape_string($mysqli, $uN);
+		$p= mysqli_real_escape_string($mysqli, $p);
+		$e= mysqli_real_escape_string($mysqli, $e);
 		
 	}//end of sanitize
+
 	
 	/*This function checks to see if the user's username has been taken
 	*$uN is the user's username
@@ -208,7 +235,7 @@ ob_start();
 	*cP refers to the confirmation password
 	*/
 	
-	function validate($uN, $p, $cP, $capt){
+	function validate($uN, $e, $p, $cP, $capt){
 		global $count;
 		global $feedback;
 		
@@ -227,6 +254,29 @@ ob_start();
 			$count++;
 			$feedback.="<br/>Your username cannot contain special characters.";
 		}//end of username validation
+
+		//start of email validation
+		//email validation
+		if($e=="" || $e==null){
+			$count++;
+			$feedback.="<br/> Email Required!";
+		}
+		
+		if (!filter_var($e, FILTER_VALIDATE_EMAIL)) {
+			$count++;
+            $feedback.= "<br/> Invalid email format"; 
+        }
+		
+		/*
+		Code adapted from: https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+		Code Author: rnevius
+		Accessed on: 28 Feb 2019. 
+		*/
+		
+		if(!preg_match('/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/',$e)){
+			$count++;
+			$feedback.="<br/> Invalid email format";
+		}//end of email validation
 		
 		//start of password validation
 		if($p=="" || $p==null){
@@ -428,6 +478,15 @@ ob_start();
 						 </div>
 						 <span class="error" id="user_err"></span>
 						</div>
+
+						<div class="form-group"> 
+							<label class="control-label col-sm-2">Email:</label>
+						 <div class="col-sm-10">
+
+							<input type="email" class="form-control" name="email" id="email" aria-labelledby="email"/> 
+						 </div>
+						 <span class="error" id="email_err"></span>
+						</div>
 						
 						<div class="form-group"> 
 							<label class="control-label col-sm-2">Password:</label>
@@ -484,7 +543,7 @@ ob_start();
 
 			<br>
 
-			
+			<p>We keep all of your information safe and confidential. Your email will only be used for security reasons. </p>
 
 			<p>For any Problems with registration or Technical Issues, </p>
 

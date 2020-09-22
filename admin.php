@@ -12,8 +12,8 @@ ob_start();
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
   <title>Sincerely, Me.</title>
-  <meta content="" name="descriptison">
-  <meta content="" name="keywords">
+  <meta content="You can learn more about Sincerely, Me and our resident therapist here!" name="description">
+  <meta content="blogging, trinidad and tobago, online, therapy, therapist, group journal, online blog, online therapy blog, venting blog, online venting blog, trinidad, sincerely, me, sincerelyme, sincerelyme-tt, sincerely" name="keywords">
 
   <!-- Favicons -->
   <link href="assets/img/favicon.png" rel="icon">

@@ -34,13 +34,13 @@ if(isset($_POST['submit'])){
         $feedback.="<br/>Your email is not in the correct format.";
     } 
 
-    //if there are no errors then check the username against the database
+    //if there are no errors then check the username and email against the database
     if($count==0){
         include('dbConnect.php');
 
-        if($stmt=mysqli_prepare($mysqli, "SELECT tbluser.userID FROM tbluser WHERE tbluser.username=?"))
+        if($stmt=mysqli_prepare($mysqli, "SELECT tbluser.userID FROM tbluser WHERE tbluser.username=? AND tbluser.email=?"))
         {
-            mysqli_stmt_bind_param($stmt, 's', $uN);
+            mysqli_stmt_bind_param($stmt, 'ss', $uN, $email);
 
             mysqli_stmt_execute($stmt);
             
@@ -50,7 +50,7 @@ if(isset($_POST['submit'])){
                 sendEmail($email, $uN, $uID);
             }else{
                 $count++;
-                $feedback.="<br/>Your username could not be found in the system.";
+                $feedback.="<br/>Your username or email could not be found in the system.";
             }
         }
     }
@@ -270,7 +270,7 @@ function sendEmail($email, $uN, $uID){
       
         <div class="form-group"> 
             <label class="control-label col-sm-4">Please Enter your Username:</label>
-            <div class="col-sm-10">
+            <div class="col-sm-12">
 
             <input type="text" class="form-control" name="uName" id="uName" aria-labelledby="username"/> 
             </div>
@@ -279,14 +279,14 @@ function sendEmail($email, $uN, $uID){
 
         <div class="form-group"> 
             <label class="control-label col-sm-4">Please Enter your Email:</label>
-            <div class="col-sm-10">
+            <div class="col-sm-12">
 
             <input type="email" class="form-control" name="email" id="email" aria-labelledby="username"/> 
             </div>
             <span class="error" id="email_err"></span>
         </div>
 
-        <div class="col-sm-10">
+        <div class="col-sm-12">
             <input type="submit" class="btn btn-outline-primary form-control sincerely" name="submit" value="Submit" onClick="return valUName();"/>
         </div>
 

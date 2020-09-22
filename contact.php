@@ -65,7 +65,7 @@ function sendEmail($name, $email, $subject, $message){
 		$mail->Password= 'EWSD2018';//well, password is password
 		$mail->SetFrom($email);
 		$mail->addReplyTo($email);
-		$mail->AddAddress('rys19@live.com');
+		$mail->AddAddress('theracoconsultants@gmail.com');
 		//content
 		$mail->isHTML();
 		$mail->Subject=$subject;
@@ -149,8 +149,8 @@ function validate($n, $e, $s, $m){
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
   <title>Sincerely, Me.</title>
-  <meta content="" name="descriptison">
-  <meta content="" name="keywords">
+  <meta content="Get in contact with our therapist, or our support team if you're in need of assistance!" name="description">
+  <meta content="blogging, trinidad and tobago, online, therapy, therapist, group journal, online blog, online therapy blog, venting blog, online venting blog, trinidad, sincerely, me, sincerelyme, sincerelyme-tt, sincerely" name="keywords">
 
   <!-- Favicons -->
   <link href="assets/img/favicon.png" rel="icon">
