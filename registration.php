@@ -50,7 +50,7 @@ ob_start();
 		include('dbConnect.php');
 
 		if($stmt =mysqli_prepare($mysqli, 
-		"SELECT * FROM tblUser WHERE tblUser.email=?")){
+		"SELECT * FROM tbluser WHERE tbluser.email=?")){
 			//bind entered parameters to mysqli statement
 			 mysqli_stmt_bind_param($stmt, "s", $email);
 			 
@@ -83,7 +83,7 @@ ob_start();
 		include('dbConnect.php');
 		
 		if($stmt=mysqli_prepare($mysqli, 
-		"SELECT tblUser.userID FROM tblUser WHERE tblUser.username=?"
+		"SELECT tbluser.userID FROM tbluser WHERE tbluser.username=?"
 		)){
 			//bind entered parameters to mysqli object
 			mysqli_stmt_bind_param($stmt, "s", $uName);
@@ -127,9 +127,9 @@ ob_start();
 		include('dbConnect.php');
 		
 		if($stmt= mysqli_prepare($mysqli, 
-		"INSERT INTO tblUser(username, password, regDate, position, email) VALUES(?,?,?,?,?)")){
+		"INSERT INTO tbluser(username, password, regDate, position, email) VALUES(?,?,?,?,?)")){
 			//bind parameters to SQL Object
-			mysqli_stmt_bind_param($stmt,"sssis", $uN, $encrypted, $date, $pos, $email);
+			mysqli_stmt_bind_param($stmt,"sssis", $uN, $encrypted, $date, $pos, $e);
 			
 			//execute statement and see if successful
 			if(mysqli_stmt_execute($stmt)){
@@ -156,7 +156,7 @@ ob_start();
 		include('dbConnect.php');
 		
 		if($stmt= mysqli_prepare($mysqli, 
-		"INSERT INTO tblBlogger(userID, bloggerID) VALUES(?,?)")){
+		"INSERT INTO tblblogger(userID, bloggerID) VALUES(?,?)")){
 			//bind parameters to SQL Object
 			mysqli_stmt_bind_param($stmt,"ii", $uID, $bloggerID);
 			
@@ -208,7 +208,7 @@ ob_start();
 		//do check here
 		
 		if($stmt =mysqli_prepare($mysqli, 
-		"SELECT * FROM tblUser WHERE tblUser.username=?")){
+		"SELECT * FROM tbluser WHERE tbluser.username=?")){
 			//bind entered parameters to mysqli statement
 			 mysqli_stmt_bind_param($stmt, "s", $uN);
 			 
@@ -396,8 +396,10 @@ ob_start();
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="admin.php">About Us</a></li>
-			  <li><a href="contact.php">Contact</a></li>
+			  <li><a href="admin.php">About Us</a></li>
+              <li><a href="contact.php">Contact</a></li>
+              <li><a href="privacyPolicy.php">Privacy Policy</a></li>
+              <li><a href="termsAndConditions.php">Terms and Conditions</a></li>
             </ul>
           </li>
 
@@ -553,7 +555,7 @@ ob_start();
 			<br>
 			<br>
 			
-			<img src="assets/img/Logo.PNG" class="img-fluid" alt="A picture of the logo for sincerely, me." width="400px" height="200px">
+			<img src="assets/img/logo.PNG" class="img-fluid" alt="A picture of the logo for sincerely, me." width="400px" height="200px">
 
 		
 

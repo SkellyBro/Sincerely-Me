@@ -106,6 +106,8 @@ $feedback="";
             <ul>
               <li><a href="admin.php">About Us</a></li>
 			  <li><a href="contact.php">Contact</a></li>
+			  <li><a href="privacyPolicy.php">Privacy Policy</a></li>
+              <li><a href="termsAndConditions.php">Terms and Conditions</a></li>
             </ul>
           </li>
 

@@ -611,7 +611,7 @@ ob_start();
 		include('dbConnect.php');
 		
 		if($stmt=mysqli_prepare($mysqli, 
-		"INSERT INTO tblBlogPost(content, heading, postDate, userID) VALUES (?, ?, ?, ?)")){
+		"INSERT INTO tblblogpost(content, heading, postDate, userID) VALUES (?, ?, ?, ?)")){
 			//bind parameters to SQL Object
 			mysqli_stmt_bind_param($stmt,"sssi", $content, $heading, $date, $uID);
 			
@@ -693,8 +693,10 @@ ob_start();
 
           <li class="drop-down"><a href="#">About</a>
             <ul>
-              <li><a href="admin.php">About Us</a></li>
-			  <li><a href="contact.php">Contact</a></li>
+			<li><a href="admin.php">About Us</a></li>
+              <li><a href="contact.php">Contact</a></li>
+              <li><a href="privacyPolicy.php">Privacy Policy</a></li>
+              <li><a href="termsAndConditions.php">Terms and Conditions</a></li>
             </ul>
           </li>
 
@@ -851,16 +853,13 @@ ob_start();
       <div class="container">
         <div class="row">
 
-          <div class="col-lg-3 col-md-6 footer-links">
+		<div class="col-lg-3 col-md-6 footer-links">
             <h4>Useful Links</h4>
-            <ul>
-          <li class="active"><a href="index.php">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="blog.html">Your Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-          <li><a href="registration.php">Register</a></li>
+             <ul>
+			  <li class="active"><a href="index.php">Home</a></li>
+			  <li><a href="admin.php">About</a></li>
+			  <li><a href="contact.php">Contact</a></li>			  
+			  <li><a href="userAccount.php">Your Account</a></li>
             </ul>
           </div>
 
